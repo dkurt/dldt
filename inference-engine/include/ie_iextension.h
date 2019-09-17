@@ -78,7 +78,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ILayerImpl() = default;
+    virtual ~ILayerImpl();
 
     /**
      * @brief Gets all supported configurations for the current layer
@@ -111,6 +111,8 @@ public:
      */
     virtual StatusCode execute(std::vector<Blob::Ptr>& inputs,
                                std::vector<Blob::Ptr>& outputs, ResponseDesc* resp) noexcept = 0;
+
+    virtual ~ILayerExecImpl();
 };
 
 /**

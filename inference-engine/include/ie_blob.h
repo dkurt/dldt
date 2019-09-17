@@ -885,8 +885,7 @@ inline typename InferenceEngine::TBlob<Type>::Ptr make_shared_blob(Precision p, 
  * @return A shared pointer to the newly created blob of the given type
  */
 template<typename Type>
-inline INFERENCE_ENGINE_API_CPP(typename InferenceEngine::TBlob<Type>::Ptr) make_shared_blob(const TensorDesc& tensorDesc) {
-  std::cout << "make_shared_blob" << std::endl;
+inline typename InferenceEngine::TBlob<Type>::Ptr make_shared_blob(const TensorDesc& tensorDesc) {
     if (!tensorDesc.getPrecision().hasStorageType<Type>())
         THROW_IE_EXCEPTION << "Cannot make shared blob! "
                            << "The blob type cannot be used to store objects of current precision";
