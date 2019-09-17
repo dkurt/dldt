@@ -190,10 +190,21 @@ public:
      */
     void execDataPreprocessing(InferenceEngine::BlobMap& inputs, bool serial = false) {
         for (auto &input : inputs) {
+
+          std::cout << "execDataPreprocessing " << input.first << std::endl;
+          std::cout << dynamic_cast<InferenceEngine::TBlob<float> *>(input.second.get()) << std::endl;
+          std::cout << dynamic_cast<InferenceEngine::TBlob<long> *>(input.second.get()) << std::endl;
+          std::cout << dynamic_cast<InferenceEngine::TBlob<unsigned char> *>(input.second.get()) << std::endl;
+          std::cout << dynamic_cast<InferenceEngine::TBlob<int> *>(input.second.get()) << std::endl;
+          std::cout << dynamic_cast<InferenceEngine::TBlob<short> *>(input.second.get()) << std::endl;
+          std::cout << dynamic_cast<InferenceEngine::TBlob<signed char> *>(input.second.get()) << std::endl;
+          std::cout << dynamic_cast<InferenceEngine::TBlob<unsigned short> *>(input.second.get()) << std::endl;
+
             // If there is a pre-process entry for an input then it must be pre-processed
             // using preconfigured resize algorithm.
             auto it = _preProcData.find(input.first);
             if (it != _preProcData.end()) {
+              std::cout << "EXECUTE!" << std::endl;
                 _preProcData[input.first].execute(input.second,
                                                   _networkInputs[input.first]->getPreProcess(),
                                                   serial,

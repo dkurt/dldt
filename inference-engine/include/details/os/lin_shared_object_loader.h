@@ -30,7 +30,7 @@ public:
      * @param pluginName Full or relative path to the library
      */
     explicit SharedObjectLoader(const char* pluginName) {
-        shared_object = dlopen(pluginName, RTLD_LAZY);
+        shared_object = dlopen(pluginName, RTLD_LAZY | RTLD_GLOBAL);
 
         if (shared_object == nullptr)
             THROW_IE_EXCEPTION << "Cannot load library '" << pluginName << "': " << dlerror();

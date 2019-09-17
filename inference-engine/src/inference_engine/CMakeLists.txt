@@ -106,41 +106,41 @@ set_target_properties(${TARGET_NAME} PROPERTIES COMPILE_PDB_NAME ${TARGET_NAME})
 
 # Static library used for unit tests which are always built
 
-add_library(${TARGET_NAME}_s STATIC
-            ${LIBRARY_SRC}
-            ${LIBRARY_HEADERS}
-            ${PUBLIC_HEADERS})
-set_ie_threading_interface_for(${TARGET_NAME}_s)
-
-# Properties->C/C++->General->Additional Include Directories
-target_include_directories(${TARGET_NAME}_s PUBLIC  "${PUBLIC_HEADERS_DIR}"
-                                            PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}"
-                                            PRIVATE "${IE_MAIN_SOURCE_DIR}/src/dumper")
-
-target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/pugixml/src")
-target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/ngraph/src")
-target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/ocv")
-
-if(ENABLE_MKL_DNN)
-  target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/mkl-dnn/src/cpu/xbyak")
-endif()
-
-target_compile_definitions(${TARGET_NAME}_s PUBLIC -DUSE_STATIC_IE)
-
-if(WIN32)
-    #To disable min/max macro in windows.h
-    target_compile_definitions(${TARGET_NAME}_s PRIVATE -DNOMINMAX)
-endif()
-
-set_target_properties(${TARGET_NAME}_s PROPERTIES COMPILE_PDB_NAME ${TARGET_NAME}_s)
-
-target_link_libraries(${TARGET_NAME}_s PRIVATE fluid
-                                       PRIVATE ngraph
-                                       PRIVATE ade
-                                       PUBLIC pugixml
+# add_library(${TARGET_NAME}_s STATIC
+#             ${LIBRARY_SRC}
+#             ${LIBRARY_HEADERS}
+#             ${PUBLIC_HEADERS})
+# set_ie_threading_interface_for(${TARGET_NAME}_s)
+#
+# # Properties->C/C++->General->Additional Include Directories
+# target_include_directories(${TARGET_NAME}_s PUBLIC  "${PUBLIC_HEADERS_DIR}"
+#                                             PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}"
+#                                             PRIVATE "${IE_MAIN_SOURCE_DIR}/src/dumper")
+#
+# target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/pugixml/src")
+# target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/ngraph/src")
+# target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/ocv")
+#
+# if(ENABLE_MKL_DNN)
+#   target_include_directories(${TARGET_NAME}_s SYSTEM PRIVATE "${IE_MAIN_SOURCE_DIR}/thirdparty/mkl-dnn/src/cpu/xbyak")
+# endif()
+#
+# target_compile_definitions(${TARGET_NAME}_s PUBLIC -DUSE_STATIC_IE)
+#
+# if(WIN32)
+#     #To disable min/max macro in windows.h
+#     target_compile_definitions(${TARGET_NAME}_s PRIVATE -DNOMINMAX)
+# endif()
+#
+# set_target_properties(${TARGET_NAME}_s PROPERTIES COMPILE_PDB_NAME ${TARGET_NAME}_s)
+#
+# target_link_libraries(${TARGET_NAME}_s PRIVATE fluid
+#                                        PRIVATE ngraph
+#                                        PRIVATE ade
+#                                        PUBLIC pugixml
 # NOTE: public linkage with ITT is important here! without it binaries that use this library do not
 #       get proper compile flags to support ITT which causes hard-to-detect bugs.
-                                       PUBLIC ${INTEL_ITT_LIBS})
+                                       # PUBLIC ${INTEL_ITT_LIBS})
 
 add_cpplint_target(${TARGET_NAME}_cpplint FOR_TARGETS ${TARGET_NAME})
 

@@ -973,7 +973,10 @@ if((CMAKE_C_COMPILER_ID MATCHES "^Clang$") OR (CMAKE_CXX_COMPILER_ID MATCHES "^C
         -Wl,-headerpad_max_install_names
     )
 
-  list(APPEND CLDNN__SYSTEM_LINK_LIBRARIES "c++" "c++abi" "supc++" "dl")
+  list(APPEND CLDNN__SYSTEM_LINK_LIBRARIES "c++" "c++abi" "dl")
+  if(NOT ANDROID)
+    list(APPEND CLDNN__SYSTEM_LINK_LIBRARIES "supc++")
+  endif()
 endif()
 
 unset(__CLDNN_LinkerFlagName)

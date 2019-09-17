@@ -20,7 +20,7 @@ namespace InferenceEngine {
  * @brief This class enables creation of several blobs based on a single allocation but using different offsets for read/write
  */
 template<class T>
-class TBlobProxy : public TBlob<T> {
+class INFERENCE_ENGINE_API_CLASS(TBlobProxy) : public TBlob<T> {
     using base = TBlob<T>;
 
 public:
@@ -101,6 +101,8 @@ public:
         return {getAllocator().get(), getHandle(), offset};
     }
 
+    virtual ~TBlobProxy();
+
 protected:
     /**
      * @brief Gets an allocator
@@ -147,4 +149,13 @@ private:
     typename Blob::Ptr realObject;
     size_t offset;
 };
+
+extern template class InferenceEngine::TBlobProxy<float>;
+extern template class InferenceEngine::TBlobProxy<int16_t>;
+extern template class InferenceEngine::TBlobProxy<uint16_t>;
+extern template class InferenceEngine::TBlobProxy<int8_t>;
+extern template class InferenceEngine::TBlobProxy<uint8_t>;
+extern template class InferenceEngine::TBlobProxy<int>;
+extern template class InferenceEngine::TBlobProxy<long>;
+
 }  // namespace InferenceEngine

@@ -373,6 +373,17 @@ Core::Core(const std::string & xmlConfigFile) {
         xmlConfigFile_ = FileUtils::makePath(getIELibraryPath(), "plugins.xml");
     }
 
+    Blob::Ptr inputBlob = InferenceEngine::make_shared_blob<float>({InferenceEngine::Precision::FP32,
+                                                      {1},
+                                                      Layout::C});
+    { TBlob<float>* blob = dynamic_cast<TBlob<float> *>(inputBlob.get()); }
+    { TBlob<int16_t>* blob = dynamic_cast<TBlob<int16_t> *>(inputBlob.get()); }
+    { TBlob<uint16_t>* blob = dynamic_cast<TBlob<uint16_t> *>(inputBlob.get()); }
+    { TBlob<int8_t>* blob = dynamic_cast<TBlob<int8_t> *>(inputBlob.get()); }
+    { TBlob<uint8_t>* blob = dynamic_cast<TBlob<uint8_t> *>(inputBlob.get()); }
+    { TBlob<int>* blob = dynamic_cast<TBlob<int> *>(inputBlob.get()); }
+    { TBlob<long>* blob = dynamic_cast<TBlob<long> *>(inputBlob.get()); }
+
     RegisterPlugins(xmlConfigFile_);
 }
 

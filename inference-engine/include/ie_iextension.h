@@ -71,7 +71,7 @@ struct LayerConfig {
 /**
  * @brief This class provides interface for extension implementations
  */
-class ILayerImpl {
+class INFERENCE_ENGINE_API_CLASS(ILayerImpl) {
 public:
     using Ptr = std::shared_ptr<ILayerImpl>;
 
@@ -100,7 +100,7 @@ public:
 /**
  * @brief This class provides interface for the implementation with the custom execution code
  */
-class ILayerExecImpl : public ILayerImpl {
+class INFERENCE_ENGINE_API_CLASS(ILayerExecImpl) : public ILayerImpl {
 public:
     /**
      * @brief Execute method

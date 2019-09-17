@@ -38,7 +38,7 @@ struct LayerParams {
 /**
  * @brief This is a base abstraction Layer - all DNN Layers inherit from this class
  */
-class CNNLayer  {
+class INFERENCE_ENGINE_API_CLASS(CNNLayer)  {
 public:
     /**
      * @brief A shared pointer to CNNLayer
@@ -82,6 +82,9 @@ public:
      * @brief A constructor. Creates a new CNNLayer instance and initializes layer parameters with the given values.
      * @param prms Basic common parsing parameters
      */
+
+    virtual ~CNNLayer();
+
     explicit CNNLayer(const LayerParams &prms) : name(prms.name), type(prms.type),
                                                  precision(prms.precision), userValue({0}) {
     }
@@ -89,7 +92,7 @@ public:
     /**
      * @brief A virtual destructor
      */
-    virtual ~CNNLayer() = default;
+    // virtual ~CNNLayer() = default;
 
     /**
      * @brief Sets a layer to be fused with
@@ -498,7 +501,7 @@ using GenericLayer = class CNNLayer;
 /**
  * @brief This class represents a layer with Weights and/or Biases (e.g. Convolution/Fully Connected, etc.)
  */
-class WeightableLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(WeightableLayer) : public CNNLayer {
 public:
     /**
      * @brief A default constructor. Constructs a WeightableLayer instance and initiates layer parameters with the given values
@@ -519,6 +522,8 @@ public:
      * @brief Constructs a WeightableLayer instance and initiates layer parameters with the given values
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~WeightableLayer();
 };
 
 /**
@@ -532,7 +537,7 @@ unsigned int &prop_name##_y = prop_name.at(Y_AXIS);\
 /**
  * @brief This class represents a standard 3D Convolution Layer
  */
-class ConvolutionLayer : public WeightableLayer {
+class INFERENCE_ENGINE_API_CLASS(ConvolutionLayer) : public WeightableLayer {
 public:
     /**
      * @brief A convolution kernel array [X, Y, Z, ...]
@@ -602,12 +607,14 @@ public:
      * @brief move constructor
      */
     ConvolutionLayer(ConvolutionLayer &&) = default;
+
+    virtual ~ConvolutionLayer();
 };
 
 /**
  * @brief This class represents a standard deconvolution layer
  */
-class DeconvolutionLayer : public ConvolutionLayer {
+class INFERENCE_ENGINE_API_CLASS(DeconvolutionLayer) : public ConvolutionLayer {
  public:
     using ConvolutionLayer::ConvolutionLayer;
     using ConvolutionLayer::operator=;
@@ -616,7 +623,7 @@ class DeconvolutionLayer : public ConvolutionLayer {
 /**
  * @brief This class represents a standard deformable convolution layer
  */
-class DeformableConvolutionLayer : public ConvolutionLayer {
+class INFERENCE_ENGINE_API_CLASS(DeformableConvolutionLayer) : public ConvolutionLayer {
 public:
     using ConvolutionLayer::ConvolutionLayer;
     using ConvolutionLayer::operator=;
@@ -630,7 +637,7 @@ public:
 /**
  * @brief This class represents a standard pooling layer
  */
-class PoolingLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(PoolingLayer) : public CNNLayer {
 public:
     /**
      * @brief Pooling kernel array [X, Y, Z, ...]
@@ -712,12 +719,14 @@ public:
      * @brief move constructor
      */
     PoolingLayer(PoolingLayer &&) = default;
+
+    virtual ~PoolingLayer();
 };
 
 /**
  * @brief This class represents a standard binary convolution layer
  */
-class BinaryConvolutionLayer : public WeightableLayer {
+class INFERENCE_ENGINE_API_CLASS(BinaryConvolutionLayer) : public WeightableLayer {
 public:
     /**
     * @enum eBinaryConvolutionMode
@@ -837,7 +846,7 @@ public:
  * @brief This class represents concatenation layer
  * Takes as input several data elements and merges them to one using the supplied axis
  */
-class ConcatLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(ConcatLayer) : public CNNLayer {
 public:
     /**
      * @brief An axis on which concatenation operation is performed
@@ -850,12 +859,14 @@ public:
     * In current implementation 1 means channels, 0 - batch
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~ConcatLayer();
 };
 
 /**
  * @brief This class represents a layer that evenly splits the input into the supplied outputs
  */
-class SplitLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(SplitLayer) : public CNNLayer {
 public:
     /**
      * @brief An axis on which split operation is performed
@@ -866,12 +877,14 @@ public:
     * @brief Creates a new SplitLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~SplitLayer();
 };
 
 /**
  * @brief This class represents a Linear Response Normalization (LRN) Layer
  */
-class NormLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(NormLayer) : public CNNLayer {
 public:
     /**
      * @brief Response size
@@ -898,12 +911,14 @@ public:
      * @brief Creates a new NormLayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~NormLayer();
 };
 
 /**
  * @brief This class represents standard softmax Layer
  */
-class SoftMaxLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(SoftMaxLayer) : public CNNLayer {
 public:
     /**
      * @brief Axis number for a softmax operation
@@ -913,13 +928,15 @@ public:
      * @brief Creates a new SoftMaxLayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~SoftMaxLayer();
 };
 
 /**
  * @class GRNLayer
  * @brief This class represents standard GRN Layer
  */
-class GRNLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(GRNLayer) : public CNNLayer {
 public:
     /**
     * @brief A default constructor. Creates a new GRNLayer instance and initializes layer parameters with the given values.
@@ -931,13 +948,15 @@ public:
      * @brief Bias for squares sum
      */
     float bias = 0.f;
+
+    virtual ~GRNLayer();
 };
 
 /**
  * @class MVNLayer
  * @brief This class represents standard MVN Layer
  */
-class MVNLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(MVNLayer) : public CNNLayer {
 public:
     /**
     * @brief A default constructor. Creates a new MVNLayer instance and initializes layer parameters with the given values.
@@ -954,12 +973,14 @@ public:
     * @brief Indicate that the result needs to be normalized
     */
     int normalize = 1;
+
+    virtual ~MVNLayer();
 };
 
 /**
  * @brief This class represents a Rectified Linear activation layer
  */
-class ReLULayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(ReLULayer) : public CNNLayer {
 public:
     /**
      * @brief Negative slope is used to takle negative inputs instead of setting them to 0
@@ -970,13 +991,15 @@ public:
      * @brief Creates a new ReLULayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~ReLULayer();
 };
 
 /**
  * @brief This class represents a Clamp activation layer
  * Clamps all tensor elements into the range [min_value, max_value]
  */
-class ClampLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(ClampLayer) : public CNNLayer {
 public:
     /**
      * @brief A minimum value
@@ -991,6 +1014,8 @@ public:
      * @brief Creates a new ClampLayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~ClampLayer();
 };
 
 
@@ -998,20 +1023,22 @@ public:
  * @brief This class represents a ReLU6 activation layer
  * Clamps all tensor elements into the range [0, 6.0]
  */
-class ReLU6Layer : public ClampLayer {
+class INFERENCE_ENGINE_API_CLASS(ReLU6Layer) : public ClampLayer {
 public:
     explicit ReLU6Layer(const LayerParams &prms) : ClampLayer(prms) {
         max_value = 6.0f;
     }
 
     using ClampLayer::ClampLayer;
+
+    virtual ~ReLU6Layer();
 };
 
 
 /**
  * @brief This class represents an element wise operation layer
  */
-class EltwiseLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(EltwiseLayer) : public CNNLayer {
 public:
     /**
      * @enum eOperation
@@ -1037,12 +1064,14 @@ public:
     * @brief Creates a new EltwiseLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~EltwiseLayer();
 };
 
 /**
  * @brief This class represents a standard crop layer
  */
-class CropLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(CropLayer) : public CNNLayer {
 public:
     /**
      * @brief A vector of dimensions for cropping
@@ -1061,12 +1090,14 @@ public:
      * @brief Creates a new CropLayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~CropLayer();
 };
 
 /**
  * @brief This class represents a standard reshape layer
  */
-class ReshapeLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(ReshapeLayer) : public CNNLayer {
 public:
     /**
      * @brief A vector of sizes of the shape
@@ -1085,12 +1116,14 @@ public:
      * @brief Creates a new ReshapeLayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~ReshapeLayer();
 };
 
 /**
  * @brief This class represents a standard Tile Layer
  */
-class TileLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(TileLayer) : public CNNLayer {
 public:
     /**
      * @brief An index of the axis to tile
@@ -1105,13 +1138,15 @@ public:
      * @brief Creates a new TileLayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~TileLayer();
 };
 
 
 /**
  * @brief This class represents a Layer which performs Scale and Shift
  */
-class ScaleShiftLayer : public WeightableLayer {
+class INFERENCE_ENGINE_API_CLASS(ScaleShiftLayer) : public WeightableLayer {
 public:
     /**
      * @brief A flag that indicates if the same value is used for all the features. If false, the value is used pixel wise
@@ -1122,12 +1157,14 @@ public:
      * @brief Creates a new ScaleShiftLayer instance.
      */
     using WeightableLayer::WeightableLayer;
+
+    virtual ~ScaleShiftLayer();
 };
 
 /**
  * @brief This class represents TensorIterator layer
  */
-class TensorIterator : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(TensorIterator) : public CNNLayer {
 public:
     struct PortMap {
         // Data map rule
@@ -1154,12 +1191,14 @@ public:
     Body body;
 
     using CNNLayer::CNNLayer;
+
+    virtual ~TensorIterator();
 };
 
 /**
  * @brief Base class for recurrent cell layers
  */
-class RNNCellBase : public WeightableLayer {
+class INFERENCE_ENGINE_API_CLASS(RNNCellBase) : public WeightableLayer {
 public:
     using WeightableLayer::WeightableLayer;
 
@@ -1210,6 +1249,8 @@ public:
      * Respective to activation list.
      */
     std::vector<float> activation_beta;
+
+    virtual ~RNNCellBase();
 };
 
 /**
@@ -1344,7 +1385,7 @@ using RNNCell  = RNNCellBase;
  * NB! if ND==2 weights are concatenated cell weights [forward_cell_weights, backward_cell_weights]
  *
  */
-class RNNSequenceLayer : public RNNCellBase {
+class INFERENCE_ENGINE_API_CLASS(RNNSequenceLayer) : public RNNCellBase {
 public:
     using RNNCellBase::RNNCellBase;
 
@@ -1366,12 +1407,14 @@ public:
 
     /** @copybrief Direction */
     Direction direction = FWD;
+
+    virtual ~RNNSequenceLayer();
 };
 
 /**
  * @brief This class represents a Layer which performs Scale and Shift
  */
-class PReLULayer : public WeightableLayer {
+class INFERENCE_ENGINE_API_CLASS(PReLULayer) : public WeightableLayer {
 public:
     /**
      * @brief A flag that indicates if the same negative_slope value is used for all the features. If false, the value is used pixel wise
@@ -1384,13 +1427,15 @@ public:
      * @param prms Initial layer parameters
      */
     explicit PReLULayer(const LayerParams &prms) : WeightableLayer(prms), _channel_shared(false) {}
+
+    virtual ~PReLULayer();
 };
 
 /**
  * @brief This class represents a standard Power Layer
  * Formula is: output = (offset + scale * input) ^ power
  */
-class PowerLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(PowerLayer) : public CNNLayer {
 public:
     /**
      * @brief An exponent value
@@ -1409,12 +1454,14 @@ public:
      * @brief Creates a new PowerLayer instance.
      */
     using CNNLayer::CNNLayer;
+
+    virtual ~PowerLayer();
 };
 
 /**
  * @brief This class represents a Batch Normalization Layer
  */
-class BatchNormalizationLayer : public WeightableLayer {
+class INFERENCE_ENGINE_API_CLASS(BatchNormalizationLayer) : public WeightableLayer {
 public:
     /**
      * @brief A small value to add to the variance estimate to avoid division by zero
@@ -1425,13 +1472,15 @@ public:
      * @brief Creates a new BatchNormalizationLayer instance.
      */
     using WeightableLayer::WeightableLayer;
+
+    virtual ~BatchNormalizationLayer();
 };
 
 /**
  * @brief This class represents a general matrix multiplication operation layer
  * Formula is: dst := alpha*src1*src2 + beta*src3
  */
-class GemmLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(GemmLayer) : public CNNLayer {
 public:
     /**
     * @brief A scale factor of src1 matrix
@@ -1453,13 +1502,15 @@ public:
     * @brief Creates a new GemmLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~GemmLayer();
 };
 
 /**
  * @brief This class represents a standard Pad layer
  * Adds paddings to input tensor
  */
-class PadLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(PadLayer) : public CNNLayer {
 public:
     /**
      * @enum ePadMode
@@ -1489,13 +1540,15 @@ public:
     * @brief Creates a new PadLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~PadLayer();
 };
 
 /**
  * @brief This class represents a standard Gather layer
  * Gather slices from Dictionary according to Indexes
  */
-class GatherLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(GatherLayer) : public CNNLayer {
 public:
     /**
     * @brief The axis in Dictionary to gather Indexes from
@@ -1505,13 +1558,15 @@ public:
     * @brief Creates a new GatherLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~GatherLayer();
 };
 
 /**
  * @brief This class represents a standard Strided Slice layer
  * Strided Slice picks from input tensor according parameters
  */
-class StridedSliceLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(StridedSliceLayer) : public CNNLayer {
 public:
     /**
     * @brief The begin_mask is a bitmask where bit i being 0 means
@@ -1542,13 +1597,15 @@ public:
     * @brief Creates a new StridedSliceLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~StridedSliceLayer();
 };
 
 /**
 * @brief This class represents a standard Shuffle Channels layer
 * Shuffle Channels picks from input tensor according parameters
 */
-class ShuffleChannelsLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(ShuffleChannelsLayer) : public CNNLayer {
 public:
     /**
     * @brief The axis in tensor to shuffle channels
@@ -1564,6 +1621,8 @@ public:
     * @brief Creates a new ShuffleChannelsLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~ShuffleChannelsLayer();
 };
 
 
@@ -1571,7 +1630,7 @@ public:
 * @brief This class represents a standard Depth To Space layer
 * Depth To Space picks from input tensor according parameters
 */
-class DepthToSpaceLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(DepthToSpaceLayer) : public CNNLayer {
 public:
     /**
     * @brief The group of output shuffled channels
@@ -1582,6 +1641,8 @@ public:
     * @brief Creates a new DepthToSpaceLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~DepthToSpaceLayer();
 };
 
 
@@ -1589,7 +1650,7 @@ public:
 * @brief This class represents a standard Space To Depth layer
 * Depth To Space picks from input tensor according parameters
 */
-class SpaceToDepthLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(SpaceToDepthLayer) : public CNNLayer {
 public:
     /**
     * @brief The group of output Space To Depth
@@ -1600,6 +1661,8 @@ public:
     * @brief Creates a new SpaceToDepthLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~SpaceToDepthLayer();
 };
 
 
@@ -1607,7 +1670,7 @@ public:
 * @brief This class represents a standard Reverse Sequence layer
 * Reverse Sequence modifies input tensor according parameters
 */
-class ReverseSequenceLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(ReverseSequenceLayer) : public CNNLayer {
 public:
     /**
     * @brief The seq_axis dimension in tensor which is partially reversed
@@ -1623,6 +1686,8 @@ public:
     * @brief Creates a new ReverseSequence instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~ReverseSequenceLayer();
 };
 
 
@@ -1630,7 +1695,7 @@ public:
 * @brief This class represents a OneHot layer
 * Converts input into OneHot representation.
 */
-class OneHotLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(OneHotLayer) : public CNNLayer {
 public:
     /**
     * @brief A depth of representation
@@ -1656,6 +1721,8 @@ public:
     * @brief Creates a new OneHot instance
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~OneHotLayer();
 };
 
 
@@ -1663,12 +1730,14 @@ public:
 * @brief This class represents a standard RangeLayer layer
 * RangeLayer modifies input tensor dimensions according parameters
 */
-class RangeLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(RangeLayer) : public CNNLayer {
 public:
     /**
     * @brief Creates a new RangeLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~RangeLayer();
 };
 
 
@@ -1676,12 +1745,14 @@ public:
 * @brief This class represents a standard Fill layer
 * RFill modifies input tensor according parameters
 */
-class FillLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(FillLayer) : public CNNLayer {
 public:
     /**
     * @brief Creates a new Fill instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~FillLayer();
 };
 
 
@@ -1691,12 +1762,14 @@ public:
 * The “cond” tensor is broadcasted to “then” and “else” tensors.
 * The output tensor shape is equal to broadcasted shape of “cond”, “then” and “else”.
 */
-class SelectLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(SelectLayer) : public CNNLayer {
 public:
     /**
     * @brief Creates a new SelectLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~SelectLayer();
 };
 
 
@@ -1704,19 +1777,21 @@ public:
 * @brief This class represents a standard Broadcast layer
 * Broadcast modifies input tensor dimensions according parameters
 */
-class BroadcastLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(BroadcastLayer) : public CNNLayer {
 public:
     /**
     * @brief Creates a new Broadcast instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~BroadcastLayer();
 };
 
 /**
  * @brief This class represents a quantization operation layer
  * Element-wise linear quantization of floating point input values into a descrete set of floating point values
  */
-class QuantizeLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(QuantizeLayer) : public CNNLayer {
 public:
     /**
     * @brief The number of quantization levels
@@ -1727,6 +1802,8 @@ public:
     * @brief Creates a new QuantizeLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~QuantizeLayer();
 };
 
 
@@ -1734,12 +1811,14 @@ public:
 * @brief This class represents a standard Math layers
 * Math modifies input tensor dimensions according parameters
 */
-class MathLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(MathLayer) : public CNNLayer {
 public:
     /**
     * @brief Creates a new Math instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~MathLayer();
 };
 
 
@@ -1747,7 +1826,7 @@ public:
 * @brief This class represents a standard Reduce layers
 * Reduce modifies input tensor according parameters
 */
-class ReduceLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(ReduceLayer) : public CNNLayer {
 public:
     /**
     * @brief The keep_dims dimension in tensor which is partially reversed
@@ -1758,6 +1837,8 @@ public:
     * @brief Creates a new Reduce instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~ReduceLayer();
 };
 
 
@@ -1765,7 +1846,7 @@ public:
  * @brief This class represents a standard TopK layer
  * TopK picks top K values from input tensor according parameters
  */
-class TopKLayer : public CNNLayer {
+class INFERENCE_ENGINE_API_CLASS(TopKLayer) : public CNNLayer {
 public:
     /**
     * @brief The mode could be 'max' or 'min'
@@ -1784,6 +1865,8 @@ public:
     * @brief Creates a new TopKLayer instance.
     */
     using CNNLayer::CNNLayer;
+
+    virtual ~TopKLayer();
 };
 
 

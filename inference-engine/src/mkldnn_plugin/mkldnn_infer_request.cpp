@@ -19,6 +19,26 @@ MKLDNNPlugin::MKLDNNInferRequest::MKLDNNInferRequest(InferenceEngine::InputsData
 
 
 template <typename T> void MKLDNNPlugin::MKLDNNInferRequest::pushInput(const std::string& inputName, InferenceEngine::Blob::Ptr& inputBlob) {
+    // {
+    //     std::cout << inputName << std::endl;
+    //     std::cout << (inputBlob->getTensorDesc().getPrecision() == Precision::FP32) << std::endl;
+    //     std::cout << (inputBlob->getTensorDesc().getPrecision() == Precision::U8) << std::endl;
+    //
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<float> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<long> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<unsigned char> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<int> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<short> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<signed char> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<unsigned short> *>(inputBlob.get()) << std::endl;
+    //
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<int8_t> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<uint8_t> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<int16_t> *>(inputBlob.get()) << std::endl;
+    //   std::cout << dynamic_cast<InferenceEngine::TBlob<uint16_t> *>(inputBlob.get()) << std::endl;
+    // }
+    //
+
     InferenceEngine::TBlob<T> *in_f = dynamic_cast<InferenceEngine::TBlob<T> *>(inputBlob.get());
 
     if (in_f == nullptr) {
@@ -39,7 +59,9 @@ void MKLDNNPlugin::MKLDNNInferRequest::InferImpl() {
     }
     auto infer = [this] {
         // execute input pre-processing.
+        std::cout << "_inputs.size " << _inputs.size() << std::endl;
         execDataPreprocessing(_inputs);
+        std::cout << "_inputs.size " << _inputs.size() << std::endl;
 
         changeDefaultPtr();
         // need to retain converted blobs until infer finish
@@ -55,12 +77,16 @@ void MKLDNNPlugin::MKLDNNInferRequest::InferImpl() {
             InferenceEngine::TBlob<float> *in_f = nullptr;
             switch (input.second->getTensorDesc().getPrecision()) {
                 case InferenceEngine::Precision::FP32:
+                    std::cout << 1 << std::endl;
                     pushInput<float>(input.first, input.second);
                     break;
                 case InferenceEngine::Precision::I32:
+                std::cout << 2 << std::endl;
                     pushInput<int32_t>(input.first, input.second);
                     break;
                 case InferenceEngine::Precision::I8:
+                std::cout << 3 << std::endl;
+
                     pushInput<int8_t>(input.first, input.second);
                     break;
                 case InferenceEngine::Precision::U16:
@@ -74,6 +100,7 @@ void MKLDNNPlugin::MKLDNNInferRequest::InferImpl() {
                     if (in_f == nullptr)
                         THROW_IE_EXCEPTION << "Cannot get TBlob";
                     InferenceEngine::copyToFloat<uint16_t>(in_f->data(), input.second.get());
+                    std::cout << 4 << std::endl;
                     pushInput<float>(input.first, iconv);
                     break;
                 case InferenceEngine::Precision::I16:
@@ -88,9 +115,11 @@ void MKLDNNPlugin::MKLDNNInferRequest::InferImpl() {
                         if (in_f == nullptr)
                             THROW_IE_EXCEPTION << "Cannot get TBlob";
                         InferenceEngine::copyToFloat<int16_t>(in_f->data(), input.second.get());
+                        std::cout << 5 << std::endl;
                         pushInput<float>(input.first, iconv);
                     } else {
                         // Instead we can send I16 directly
+                        std::cout << 6 << std::endl;
                         pushInput<int16_t>(input.first, input.second);
                     }
                     break;
@@ -106,9 +135,11 @@ void MKLDNNPlugin::MKLDNNInferRequest::InferImpl() {
                         if (in_f == nullptr)
                             THROW_IE_EXCEPTION << "Cannot get TBlob";
                         InferenceEngine::copyToFloat<uint8_t>(in_f->data(), input.second.get());
+                        std::cout << 7 << std::endl;
                         pushInput<float>(input.first, iconv);
                     } else {
                         // Instead we can send I8 directly
+                        std::cout << 8 << std::endl;
                         pushInput<uint8_t>(input.first, input.second);
                     }
                     break;
@@ -200,6 +231,13 @@ void MKLDNNPlugin::MKLDNNInferRequest::GetBlob(const char *name, InferenceEngine
 }
 
 void MKLDNNPlugin::MKLDNNInferRequest::SetBlob(const char *name, const InferenceEngine::Blob::Ptr &data) {
+
+  std::cout << "setBlob " << name << std::endl;
+  std::cout << dynamic_cast<InferenceEngine::TBlob<float> *>(data.get()) << std::endl;
+  std::cout << dynamic_cast<InferenceEngine::TBlob<uint8_t> *>(data.get()) << std::endl;
+  std::cout << dynamic_cast<InferenceEngine::Blob*>(data.get()) << std::endl;
+  std::cout << dynamic_cast<InferenceEngine::MemoryBlob*>(data.get()) << std::endl;
+
     if (name == nullptr) {
         THROW_IE_EXCEPTION << NOT_FOUND_str + "Failed to set blob with empty name";
     }
