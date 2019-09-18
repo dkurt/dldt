@@ -424,6 +424,12 @@ public:
     }
 
     /**
+     * @brief Returns the number of bytes per element. The overall MemoryBlob capacity is size() * element_size().
+     * Abstract method.
+     */
+    size_t element_size() const noexcept override = 0;
+
+    /**
      * @brief Allocates memory to store the data.
      * Abstract method.
      */
@@ -477,8 +483,8 @@ using BlobMap = std::map<std::string, Blob::Ptr>;
 template<typename T,
         typename = std::enable_if<std::is_pod<T>::value>>
 class INFERENCE_ENGINE_API_CLASS(TBlob) : public MemoryBlob {
-    // template<typename> friend
-    // class TBlob;
+    template<typename, typename> friend
+    class TBlob;
 
 public:
     /**
@@ -769,7 +775,14 @@ protected:
     /**
      * @brief Frees handler and cleans up the stored data.
      */
-    virtual bool free();
+    virtual bool free() {
+        bool bCanRelease = true;
+        if (_handle == nullptr) return bCanRelease;
+
+        bCanRelease = getAllocator()->free(_handle);
+        _handle = nullptr;
+        return bCanRelease;
+    }
 
     /**
      * @brief Creates a LockedMemory instance.

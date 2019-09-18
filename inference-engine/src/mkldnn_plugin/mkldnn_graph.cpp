@@ -417,8 +417,6 @@ void MKLDNNGraph::InitNodes() {
             auto *inputNode = dynamic_cast<MKLDNNInputNode *>(node.get());
             if (inputNode)
                 inputNode->withMeanImage();
-            else
-                std::cout << node->getName() << " no 2" << std::endl;
         }
         node->getSupportedDescriptors();
 
@@ -894,10 +892,8 @@ Config MKLDNNGraph::getProperty() {
 void MKLDNNGraph::getInputBlobs(InferenceEngine::BlobMap &resp) {
     for (auto &it : inputNodes) {
         MKLDNNInputNode* node = dynamic_cast<MKLDNNInputNode*>(it.second.get());
-        if (!node || node->isConstant()) {
-            std::cout << it.first << " no 1"<< std::endl;
+        if (!node || node->isConstant())
             continue;
-        }
         resp[it.first] = node->getChildEdgeAt(0)->getBlob();
     }
 }

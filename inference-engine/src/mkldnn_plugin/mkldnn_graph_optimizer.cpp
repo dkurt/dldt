@@ -289,16 +289,14 @@ void MKLDNNGraphOptimizer::FuseConvolutionAndDWConvolution(MKLDNNGraph &graph) {
         if (isBinaryConvolutionNode(node)) {
             auto *layer = dynamic_cast<BinaryConvolutionLayer *>(node->getCnnLayer().get());
             if (layer == nullptr)
-                THROW_IE_EXCEPTION << "Cannot get convolution layer 4 " << node->getName();
+                THROW_IE_EXCEPTION << "Cannot get convolution layer " << node->getName();
 
             bool isSupportedParams = layer->_group == 1;
             if (!isSupportedParams) return false;
         } else {
             auto *layer = dynamic_cast<ConvolutionLayer *>(node->getCnnLayer().get());
-            if (layer == nullptr) {
-                std::cout << node->getCnnLayer()->type << std::endl;
-                THROW_IE_EXCEPTION << "Cannot get convolution layer 5 " << node->getName();
-            }
+            if (layer == nullptr)
+                THROW_IE_EXCEPTION << "Cannot get convolution layer " << node->getName();
 
             bool isSupportedParams = layer->_group == 1 &&
                                          ((is1x1Convolution(layer) && layer->_stride[X_AXIS] == 1 &&
@@ -314,12 +312,12 @@ void MKLDNNGraphOptimizer::FuseConvolutionAndDWConvolution(MKLDNNGraph &graph) {
     auto isSutableChildConvolution = [&](MKLDNNNodePtr parentNode, MKLDNNNodePtr childNode) {
         auto* childLayer = dynamic_cast<ConvolutionLayer*>(childNode->getCnnLayer().get());
         if (childLayer == nullptr)
-            THROW_IE_EXCEPTION << "Cannot get convolution layer 1 " << childNode->getName();
+            THROW_IE_EXCEPTION << "Cannot get convolution layer " << childNode->getName();
 
         if (!isBinaryConvolutionNode(parentNode)) {
             auto* parentLayer = dynamic_cast<ConvolutionLayer*>(parentNode->getCnnLayer().get());
             if (parentLayer == nullptr)
-                THROW_IE_EXCEPTION << "Cannot get convolution layer 2 " << parentNode->getName();
+                THROW_IE_EXCEPTION << "Cannot get convolution layer " << parentNode->getName();
 
             if (parentLayer->outData[0].get()->getPrecision() != childLayer->outData[0].get()->getPrecision())
                 return false;
@@ -347,7 +345,7 @@ void MKLDNNGraphOptimizer::FuseConvolutionAndDWConvolution(MKLDNNGraph &graph) {
 
         auto* layer = dynamic_cast<ConvolutionLayer*>(childNode->getCnnLayer().get());
         if (layer == nullptr)
-            THROW_IE_EXCEPTION << "Cannot get convolution layer 3 " << childNode->getName();
+            THROW_IE_EXCEPTION << "Cannot get convolution layer " << childNode->getName();
 
         auto inDims = childNode->inDims[0];
         auto outDims = childNode->outDims[0];

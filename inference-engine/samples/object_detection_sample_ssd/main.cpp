@@ -324,8 +324,8 @@ int main(int argc, char *argv[]) {
             auto xmax = static_cast<int>(detection[curProposal * objectSize + 5] * imageWidths[image_id]);
             auto ymax = static_cast<int>(detection[curProposal * objectSize + 6] * imageHeights[image_id]);
 
-            // std::cout << "[" << curProposal << "," << label << "] element, prob = " << confidence <<
-            //     "    (" << xmin << "," << ymin << ")-(" << xmax << "," << ymax << ")" << " batch id : " << image_id;
+            std::cout << "[" << curProposal << "," << label << "] element, prob = " << confidence <<
+                "    (" << xmin << "," << ymin << ")-(" << xmax << "," << ymax << ")" << " batch id : " << image_id;
 
             if (confidence > 0.5) {
                 /** Drawing only objects with >50% probability **/
@@ -334,10 +334,9 @@ int main(int argc, char *argv[]) {
                 boxes[image_id].push_back(ymin);
                 boxes[image_id].push_back(xmax - xmin);
                 boxes[image_id].push_back(ymax - ymin);
-                // std::cout << " WILL BE PRINTED!";
-                std::cout << confidence << std::endl;
+                std::cout << " WILL BE PRINTED!";
             }
-            // std::cout << std::endl;
+            std::cout << std::endl;
         }
 
         for (size_t batch_id = 0; batch_id < batchSize; ++batch_id) {
