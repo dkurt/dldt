@@ -1,12 +1,23 @@
+# Build TBB
+# Android NDK, Revision 16b
+# export NDK_ROOT=/home/dkurt/Downloads/android-ndk-r16b/
+# ~/Downloads/android-ndk-r16b/ndk-build target=android arch=intel64 compiler=clang -j8 tbb tbbmalloc
+
+# Build Inference Engine
+# Modify inference-engine/thirdparty/ngraph/src/ngraph/CMakeLists.txt
+# - target_link_libraries(ngraph PUBLIC dl pthread)
+# + target_link_libraries(ngraph PUBLIC dl)
+
 export ANDROID_NDK=/home/dkurt/Downloads/android-ndk-r20
-export ANDROID_SDK=/home/dkurt/Android/Sdk/
-export ANDROID_HOME=/home/dkurt/Android/Sdk/
 
 /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
   -DANDROID_ABI=x86_64 \
   -DENABLE_VPU=OFF \
-  -DTHREADING="SEQ" \
+  -DTHREADING="TBB" \
+  -DTBB_INCLUDE_DIRS=~/tbb/include \
+  -DTBB_LIBRARIES_RELEASE=/home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so \
+  -DTBB_LIBRARIES_DEBUG=/home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_debug/libtbb_debug.so \
   -DENABLE_GNA=OFF \
   -DENABLE_DLIA=OFF \
   -DENABLE_ALTERNATIVE_TEMP=OFF \
@@ -21,19 +32,20 @@ export ANDROID_HOME=/home/dkurt/Android/Sdk/
   -DCMAKE_CXX_FLAGS="-Wno-defaulted-function-deleted" \
   .. && make -j8
 
+cp /home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so ../bin/intel64/Release/lib/
+cp /home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbbmalloc.so ../bin/intel64/Release/lib/
+cp /home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libc++_shared.so ../bin/intel64/Release/lib/
+
   # -DANDROID_STL="c++_shared" \
   # -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-E" \
   # -DANDROID_LINKER_FLAGS="-Wl,-E" \
   # -DANDROID_STL_FORCE_FEATURES=ON \
 
 
-
-# Comment inference-engine/samples/CMakeLists.txt
-# target_link_libraries(${IE_SAMPLE_NAME} PRIVATE pthread)
-
 # Copy to /data/local
 # chmod 777 -R bin
 # export LD_LIBRARY_PATH=./bin/intel64/Release/lib
+# NOTE: To run samples, use LD_PRELOAD=./bin/intel64/Release/lib/libMKLDNNPlugin.so (TBB linkage issue)
 
 
 # https://android.googlesource.com/platform/ndk/+/master/docs/user/common_problems.md
