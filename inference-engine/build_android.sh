@@ -9,7 +9,22 @@
 # + target_link_libraries(ngraph PUBLIC dl)
 
 export ANDROID_NDK=/home/dkurt/Downloads/android-ndk-r20
+export OpenCV_DIR=/home/dkurt/opencv_install/sdk/native/jni/
 
+# Build OpenCV
+# /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
+#   -DCMAKE_INSTALL_PREFIX=~/opencv_install \
+#   -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
+#   -DBUILD_EXAMPLES=OFF \
+#   -DBUILD_ANDROID_EXAMPLES=OFF \
+#   -DBUILD_ANDROID_PROJECTS=OFF \
+#   -DANDROID_ABI=x86_64 \
+#   -DBUILD_TESTS=OFF \
+#   -DBUILD_PERF_TESTS=OFF \
+#   -DBUILD_SHARED_LIBS=ON \
+#   -DBUILD_LIST=core,imgcodecs,videoio,imgproc ..
+
+# Build Inference Engine
 /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
   -DANDROID_ABI=x86_64 \
@@ -23,7 +38,7 @@ export ANDROID_NDK=/home/dkurt/Downloads/android-ndk-r20
   -DENABLE_ALTERNATIVE_TEMP=OFF \
   -DENABLE_SEGMENTATION_TESTS=OFF \
   -DENABLE_OBJECT_DETECTION_TESTS=OFF \
-  -DENABLE_OPENCV=OFF \
+  -DENABLE_OPENCV=ON \
   -DENABLE_CLDNN=OFF \
   -DENABLE_TESTS=OFF \
   -DENABLE_SAMPLES=ON \
@@ -35,6 +50,7 @@ export ANDROID_NDK=/home/dkurt/Downloads/android-ndk-r20
 cp /home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so ../bin/intel64/Release/lib/
 cp /home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbbmalloc.so ../bin/intel64/Release/lib/
 cp /home/dkurt/tbb/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libc++_shared.so ../bin/intel64/Release/lib/
+cp ${OpenCV_DIR}/../libs/x86_64/*.so ../bin/intel64/Release/lib/
 
   # -DANDROID_STL="c++_shared" \
   # -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-E" \
