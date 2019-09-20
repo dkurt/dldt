@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <ie_parameter.hpp>
+#include "ie_api.h"
 
 namespace InferenceEngine {
 
@@ -25,7 +26,7 @@ class ICore;
  * @brief Extended plugin API to add new method to plugins but without changing public interface IInferencePlugin.
  * It should be used together with base IInferencePlugin which provides common interface, while this one just extends API.
  */
-class IInferencePluginAPI {
+class INFERENCE_ENGINE_API_CLASS(IInferencePluginAPI) {
 public:
     /**
      * @brief Sets plugin name
@@ -67,7 +68,7 @@ public:
      */
     virtual Parameter GetMetric(const std::string& name, const std::map<std::string, Parameter> & options) const = 0;
 
-    virtual ~IInferencePluginAPI() = default;
+    virtual ~IInferencePluginAPI();
 };
 
 class DeviceIDParser {
