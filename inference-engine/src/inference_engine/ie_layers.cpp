@@ -12,6 +12,7 @@ CNNLayer::~CNNLayer() {}
 WeightableLayer::~WeightableLayer() {}
 ConvolutionLayer::~ConvolutionLayer() {}
 PoolingLayer::~PoolingLayer() {}
+FullyConnectedLayer::~FullyConnectedLayer() {}
 ConcatLayer::~ConcatLayer() {}
 SplitLayer::~SplitLayer() {}
 NormLayer::~NormLayer() {}

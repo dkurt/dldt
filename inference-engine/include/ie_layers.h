@@ -829,7 +829,7 @@ public:
 /**
  * @brief This class represents a fully connected layer
  */
-class FullyConnectedLayer : public WeightableLayer {
+class INFERENCE_ENGINE_API_CLASS(FullyConnectedLayer) : public WeightableLayer {
 public:
     /**
      * @brief A size of output
@@ -840,6 +840,8 @@ public:
     * @brief Creates a new FullyConnectedLayer instance and initializes layer parameters with the given values.
     */
     using WeightableLayer::WeightableLayer;
+
+    virtual ~FullyConnectedLayer();
 };
 
 /**
