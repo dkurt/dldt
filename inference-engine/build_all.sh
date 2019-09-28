@@ -39,7 +39,7 @@ build_ie() {
     -DENABLE_SEGMENTATION_TESTS=OFF \
     -DENABLE_OBJECT_DETECTION_TESTS=OFF \
     -DENABLE_OPENCV=ON \
-    -DENABLE_CLDNN=OFF \
+    -DENABLE_CLDNN=ON \
     -DENABLE_TESTS=OFF \
     -DENABLE_SAMPLES=ON \
     -DGEMM=JIT \
@@ -118,3 +118,59 @@ cp ${OpenCV_DIR}/../libs/x86_64/*.so ./bin/intel64/Release/lib/
 
 # Known issues: RTTI/Exceptions Not Working Across Library Boundaries
 # https://android.googlesource.com/platform/ndk/+/master/docs/user/common_problems.md
+
+
+#
+# Test GPU plugin with Intel Celadon
+#
+# 1. Build Celadon with OpenCL support =========================================
+#
+# source: https://01.org/projectceladon/documentation/getting_started/build-source
+#
+# mkdir -p ~/bin
+# curl https://storage.googleapis.com/git-repo-downloads/repo >  ~/bin/repo
+# chmod a+x ~/bin/repo
+# export PATH=~/bin:$PATH
+#
+# mkdir celadon
+# cd celadon
+# repo init -u https://github.com/projectceladon/manifest.git
+# repo init -u https://github.com/projectceladon/manifest -b celadon/p/mr0/master -m default.xml
+
+# Open file .repo/manifests/include/bsp-celadon.xml
+# Find "libva" dependency and replace location from
+# "vendor/intel/external/project-celadon/libva"
+# to
+# "hardware/intel/external/libva"
+
+# Find "gmmlib" and replace revision from "celadon/p/mr0/master" to "master"
+
+# Add dependencies for OpenCL runtime (https://github.com/projectceladon/manifest/pull/68)
+# <project name="compute-runtime" path="hardware/intel/external/opencl/compute-runtime" remote="github" revision="master"/>
+# <project name="intel-graphics-compiler" path="hardware/intel/external/opencl/intel-graphics-compiler" remote="github" revision="master"/>
+# <project name="OpenCL-ICD-Loader" path="hardware/intel/external/opencl/opencl-icd-loader" remote="github" revision="master"/>
+
+# Start build (https://github.com/projectceladon/manifest/wiki):
+# repo sync -j8
+# source build/envsetup.sh
+
+# Remove libva patches:
+# rm ./vendor/intel/utils/android_p/google_diff/cel_apl/vendor/intel/external/project-celadon/libva/0001-use-the-private-drm-lib-name.patch
+# rm ./vendor/intel/utils/android_p/google_diff/celadon/vendor/intel/external/project-celadon/libva/0001-use-the-private-drm-lib-name.patch
+# rm ./vendor/intel/utils/android_p/google_diff/clk/vendor/intel/external/project-celadon/libva/0001-use-the-private-drm-lib-name.patch
+# rm ./vendor/intel/utils/android_p/google_diff/cel_kbl/vendor/intel/external/project-celadon/libva/0001-use-the-private-drm-lib-name.patch
+
+# lunch celadon-userdebug
+# make project_celadon-efi SPARSE_IMG=true -j8
+
+# Install Celadon to the device
+#
+# Patch libOpenCL.so: celadon_root/out/target/product/celadon/system/lib64/libOpenCL.so:
+# patchelf --set-soname libOpenCL.so.1 libOpenCL.so
+# mv libOpenCL.so libOpenCL.so.1
+# Copy libOpenCL.so.1 nearby Inference Engine libaries: bin/intel64/Release/lib
+
+# Patch libgmm_umd.so: celadon_root/out/target/product/celadon/vendor/lib64/libgmm_umd.so
+# patchelf --set-soname libigdgmm.so.9 libgmm_umd.so
+# mv libgmm_umd.so libigdgmm.so.9
+# Copy libigdgmm.so.9 nearby Inference Engine libaries: bin/intel64/Release/lib
