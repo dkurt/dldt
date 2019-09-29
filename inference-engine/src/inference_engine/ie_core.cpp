@@ -132,7 +132,7 @@ public:
      * @brief Register plugins for devices which are located in .xml configuration file
      * @param xmlConfigFile - an .xml configuraion with device / plugin information
      */
-    void RegisterPluginsInRegistry(const std::string & xmlConfigFile) {
+    bool RegisterPluginsInRegistry(const std::string & xmlConfigFile) {
         pugi::xml_document xmlDoc;
         pugi::xml_parse_result res = xmlDoc.load_file(xmlConfigFile.c_str());
 
@@ -155,8 +155,9 @@ public:
                 }
             }
 
-            THROW_IE_EXCEPTION << "Error loading xmlfile: " << xmlConfigFile << ", " << res.description()
-                                           << " at line: " << line << " pos: " << pos;
+            //THROW_IE_EXCEPTION << "Error loading xmlfile: " << xmlConfigFile << ", " << res.description()
+            //                               << " at line: " << line << " pos: " << pos;
+            return false;
         }
 
         using namespace XMLParseUtils;
@@ -210,6 +211,7 @@ public:
                 pluginRegistry[deviceName] = desc;
             }
         }
+		return true;
     }
 
     //
@@ -612,7 +614,9 @@ void Core::RegisterPlugin(const std::string & pluginName, const std::string & de
 }
 
 void Core::RegisterPlugins(const std::string & xmlConfigFile) {
-    _impl->RegisterPluginsInRegistry(xmlConfigFile);
+    if (!_impl->RegisterPluginsInRegistry(xmlConfigFile)) {
+        RegisterPlugin("MKLDNNPlugin", "CPU");
+    }
 }
 
 void Core::UnregisterPlugin(const std::string & deviceName_) {
