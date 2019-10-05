@@ -822,6 +822,7 @@ extern template class InferenceEngine::TBlob<int8_t>;
 extern template class InferenceEngine::TBlob<uint8_t>;
 extern template class InferenceEngine::TBlob<int>;
 extern template class InferenceEngine::TBlob<long>;
+extern template class InferenceEngine::TBlob<long long>;
 
 /**
  * @deprecated Use InferenceEngine::make_shared_blob(const TensorDesc&)

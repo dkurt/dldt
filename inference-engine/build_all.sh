@@ -33,7 +33,7 @@ build_libusb() {
   fi
 
   export LIBUSB_ROOT=$(readlink -f ./libusb)
-  export LIBUSB_LIBRARY=${LIBUSB_ROOT}/android/libs/x86_64/libusb1.0.so
+  export LIBUSB_LIBRARY=${LIBUSB_ROOT}/android/libs/armeabi-v7a/libusb1.0.so
 }
 
 build_ie() {
@@ -42,20 +42,20 @@ build_ie() {
 
   /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
-    -DANDROID_ABI=x86_64 \
+    -DANDROID_ABI="armeabi-v7a with NEON" \
+    -DANDROID_PLATFORM=21 \
     -DENABLE_VPU=ON \
-    -DTHREADING="TBB" \
-    -DTBB_INCLUDE_DIRS=${TBB_ROOT}/include \
-    -DTBB_LIBRARIES_RELEASE=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so \
-    -DTBB_LIBRARIES_DEBUG=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_debug/libtbb_debug.so \
+    -DTHREADING="SEQ" \
     -DLIBUSB_INCLUDE_DIR=${LIBUSB_ROOT}/libusb \
     -DLIBUSB_LIBRARY=${LIBUSB_LIBRARY} \
     -DENABLE_GNA=OFF \
     -DENABLE_ALTERNATIVE_TEMP=OFF \
     -DENABLE_SEGMENTATION_TESTS=OFF \
     -DENABLE_OBJECT_DETECTION_TESTS=OFF \
-    -DENABLE_OPENCV=ON \
-    -DENABLE_CLDNN=ON \
+    -DENABLE_OPENCV=OFF \
+    -DENABLE_CLDNN=OFF \
+    -DENABLE_MKLDNN=OFF \
+    -DENABLE_SSE42=OFF \
     -DENABLE_TESTS=OFF \
     -DENABLE_SAMPLES=ON \
     -DGEMM=JIT \
@@ -109,12 +109,12 @@ export ANDROID_SDK=$(readlink -f ./android-sdk)
 export ANDROID_NDK="${ANDROID_SDK}/ndk-bundle"
 
 # Build TBB
-build_tbb
+# build_tbb
 
 build_libusb
 
 # Build OpenCV (without Inference Engine backend)
-build_ocv
+# build_ocv
 
 # Build Inference Engine (with OpenCV)
 # Modify inference-engine/thirdparty/ngraph/src/ngraph/CMakeLists.txt
@@ -124,11 +124,11 @@ sed -i -E 's|target_link_libraries\(ngraph PUBLIC dl pthread\)|target_link_libra
 build_ie
 
 # Copy TBB and OpenCV to the bin folder
-cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so ./bin/intel64/Release/lib/
-cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbbmalloc.so ./bin/intel64/Release/lib/
-cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libc++_shared.so ./bin/intel64/Release/lib/
-cp ${LIBUSB_LIBRARY} ./bin/intel64/Release/lib/
-cp ${OpenCV_DIR}/../libs/x86_64/*.so ./bin/intel64/Release/lib/
+# cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so ./bin/intel64/Release/lib/
+# cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbbmalloc.so ./bin/intel64/Release/lib/
+# cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libc++_shared.so ./bin/intel64/Release/lib/
+# cp ${LIBUSB_LIBRARY} ./bin/intel64/Release/lib/
+# cp ${OpenCV_DIR}/../libs/x86_64/*.so ./bin/intel64/Release/lib/
 
 # Copy binaries to /data/local
 # chmod 777 -R bin

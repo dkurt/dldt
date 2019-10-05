@@ -20,3 +20,4 @@ template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlob<int8_t>);
 template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlob<uint8_t>);
 template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlob<int>);
 template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlob<long>);
+template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlob<long long>);

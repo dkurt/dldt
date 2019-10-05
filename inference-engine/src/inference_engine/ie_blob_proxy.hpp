@@ -157,5 +157,6 @@ extern template class InferenceEngine::TBlobProxy<int8_t>;
 extern template class InferenceEngine::TBlobProxy<uint8_t>;
 extern template class InferenceEngine::TBlobProxy<int>;
 extern template class InferenceEngine::TBlobProxy<long>;
+extern template class InferenceEngine::TBlobProxy<long long>;
 
 }  // namespace InferenceEngine

@@ -17,3 +17,4 @@ template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlobProxy<int8_t>);
 template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlobProxy<uint8_t>);
 template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlobProxy<int>);
 template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlobProxy<long>);
+template class INFERENCE_ENGINE_API_CLASS(InferenceEngine::TBlobProxy<long long>);
