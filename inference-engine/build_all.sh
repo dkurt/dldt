@@ -22,6 +22,20 @@ build_tbb() {
   export TBB_ROOT=$(readlink -f ./tbb)
 }
 
+build_libusb() {
+  if [ ! -d libusb ]; then
+    git clone https://github.com/libusb/libusb/
+    curr_dir=$(pwd)
+    cd libusb/android/jni/
+    git checkout 0034b2a
+    ${ANDROID_NDK}/build/ndk-build
+    cd ${curr_dir}
+  fi
+
+  export LIBUSB_ROOT=$(readlink -f ./libusb)
+  export LIBUSB_LIBRARY=${LIBUSB_ROOT}/android/libs/x86_64/libusb1.0.so
+}
+
 build_ie() {
   mkdir -p build && cd build
   export INF_ENGINE_BUILD=$(readlink -f ./build)
@@ -29,11 +43,13 @@ build_ie() {
   /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
     -DANDROID_ABI=x86_64 \
-    -DENABLE_VPU=OFF \
+    -DENABLE_VPU=ON \
     -DTHREADING="TBB" \
     -DTBB_INCLUDE_DIRS=${TBB_ROOT}/include \
     -DTBB_LIBRARIES_RELEASE=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so \
     -DTBB_LIBRARIES_DEBUG=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_debug/libtbb_debug.so \
+    -DLIBUSB_INCLUDE_DIR=${LIBUSB_ROOT}/libusb \
+    -DLIBUSB_LIBRARY=${LIBUSB_LIBRARY} \
     -DENABLE_GNA=OFF \
     -DENABLE_ALTERNATIVE_TEMP=OFF \
     -DENABLE_SEGMENTATION_TESTS=OFF \
@@ -95,6 +111,8 @@ export ANDROID_NDK="${ANDROID_SDK}/ndk-bundle"
 # Build TBB
 build_tbb
 
+build_libusb
+
 # Build OpenCV (without Inference Engine backend)
 build_ocv
 
@@ -109,6 +127,7 @@ build_ie
 cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so ./bin/intel64/Release/lib/
 cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbbmalloc.so ./bin/intel64/Release/lib/
 cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libc++_shared.so ./bin/intel64/Release/lib/
+cp ${LIBUSB_LIBRARY} ./bin/intel64/Release/lib/
 cp ${OpenCV_DIR}/../libs/x86_64/*.so ./bin/intel64/Release/lib/
 
 # Copy binaries to /data/local
