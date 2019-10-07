@@ -62,10 +62,10 @@ target_link_libraries(${TARGET_NAME} PRIVATE inference_engine ${INTEL_ITT_LIBS} 
 
 #  add test library
 
-add_library(test_${TARGET_NAME} STATIC ${SOURCES} ${HEADERS})
-set_ie_threading_interface_for(test_${TARGET_NAME})
+# add_library(test_${TARGET_NAME} STATIC ${SOURCES} ${HEADERS})
+# set_ie_threading_interface_for(test_${TARGET_NAME})
 
-target_compile_definitions(test_${TARGET_NAME} PUBLIC -DMKLDNN_THR=${MKLDNN_THR})
-target_link_libraries(test_${TARGET_NAME} PRIVATE inference_engine_s mkldnn)
-
-set_target_properties(test_${TARGET_NAME} PROPERTIES COMPILE_PDB_NAME test_${TARGET_NAME})
+# target_compile_definitions(test_${TARGET_NAME} PUBLIC -DMKLDNN_THR=${MKLDNN_THR})
+# target_link_libraries(test_${TARGET_NAME} PRIVATE inference_engine_s mkldnn)
+#
+# set_target_properties(test_${TARGET_NAME} PROPERTIES COMPILE_PDB_NAME test_${TARGET_NAME})

@@ -19,12 +19,14 @@
 #include <tuple>
 #include <map>
 
+#include "ie_api.h"
+
 namespace InferenceEngine {
 
 /**
  * @brief This class represents an object to work with different parameters
  */
-class Parameter {
+class INFERENCE_ENGINE_API_CLASS(Parameter) {
 public:
     /**
      * @brief Default constructor
@@ -66,9 +68,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~Parameter() {
-        clear();
-    }
+    virtual ~Parameter();
 
     /**
      * Copy operator for Parameter
@@ -215,7 +215,7 @@ private:
     struct HasOperatorEqual : CheckOperatorEqual<T, EqualTo>::type {};
 
     struct Any {
-        virtual ~Any() = default;
+        virtual ~Any();
         virtual bool is(const std::type_info&) const = 0;
         virtual Any *copy() const = 0;
         virtual bool operator==(const Any& rhs) const = 0;
@@ -273,5 +273,8 @@ private:
 
     Any *ptr = nullptr;
 };
+
+extern template class InferenceEngine::Parameter::RealData<uint32_t>;
+extern template class InferenceEngine::Parameter::RealData<std::string>;
 
 }  // namespace InferenceEngine

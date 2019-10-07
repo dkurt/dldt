@@ -7,7 +7,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifndef ANDROID
 #include <sys/timeb.h>
+#endif
 #include <errno.h>
 #include <assert.h>
 

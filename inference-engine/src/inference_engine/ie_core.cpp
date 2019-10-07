@@ -48,6 +48,10 @@ IInferencePluginAPI * getInferencePluginAPIInterface(InferencePlugin plugin) {
 
 }  // namespace
 
+IInferencePlugin::~IInferencePlugin() {}
+
+IInferencePluginAPI::~IInferencePluginAPI() {}
+
 DeviceIDParser::DeviceIDParser(const std::string & deviceNameWithID) {
     deviceName = deviceNameWithID;
 

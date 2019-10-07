@@ -100,7 +100,7 @@ struct INFERENCE_ENGINE_API_CLASS(QueryNetworkResult) {
 /**
  * @brief This class is a main plugin interface
  */
-class IInferencePlugin : public details::IRelease {
+class INFERENCE_ENGINE_API_CLASS(IInferencePlugin) : public details::IRelease {
 public:
     /**
      * @brief Returns plugin version information
@@ -234,6 +234,8 @@ public:
                               const std::map<std::string, std::string> &/*config*/, QueryNetworkResult& res) const noexcept {
         res.rc = InferenceEngine::NOT_IMPLEMENTED;
     }
+
+    virtual ~IInferencePlugin();
 };
 
 /**

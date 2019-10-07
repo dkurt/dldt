@@ -32,7 +32,7 @@ namespace InferenceEngine {
  * @brief This class represents a universal container in the Inference Engine
  * @note Each Blob implementation must be derived from this Blob class directly or indirectly
  */
-class Blob {
+class INFERENCE_ENGINE_API_CLASS(Blob) {
 public:
     /**
      * @brief A smart pointer containing Blob object
@@ -81,7 +81,7 @@ public:
     /**
      * @brief Blob virtual destructor
      */
-    virtual ~Blob()  = default;
+    virtual ~Blob();
 
     /**
      * @brief Checks if the Blob object can be cast to the type T*
@@ -370,7 +370,7 @@ std::shared_ptr<const T> as(const Blob::CPtr& blob) noexcept {
  * @note Any Blob implementation that represents a concept of a tensor in memory (for example,
  * TBlob) must be a subclass of MemoryBlob instead of Blob
  */
-class MemoryBlob : public Blob {
+class INFERENCE_ENGINE_API_CLASS(MemoryBlob) : public Blob {
 public:
     /**
      * @brief A smart pointer to the MemoryBlob object
@@ -385,7 +385,7 @@ public:
     /**
      * @brief MemoryBlob virtual destructor
      */
-    virtual ~MemoryBlob()  = default;
+    virtual ~MemoryBlob();
 
     /**
      * @brief Constructor. Creates an empty MemoryBlob object with the specified precision.
@@ -482,10 +482,9 @@ using BlobMap = std::map<std::string, Blob::Ptr>;
  */
 template<typename T,
         typename = std::enable_if<std::is_pod<T>::value>>
-class TBlob : public MemoryBlob {
+class INFERENCE_ENGINE_API_CLASS(TBlob) : public MemoryBlob {
     template<typename, typename> friend
     class TBlob;
-
 
 public:
     /**
@@ -623,9 +622,7 @@ public:
     /**
      *@brief Virtual destructor.
      */
-    virtual ~TBlob() {
-        free();
-    }
+    virtual ~TBlob();
 
     /**
      * @brief Gets the size of the given type.
@@ -818,6 +815,14 @@ protected:
     }
 };
 
+extern template class InferenceEngine::TBlob<float>;
+extern template class InferenceEngine::TBlob<int16_t>;
+extern template class InferenceEngine::TBlob<uint16_t>;
+extern template class InferenceEngine::TBlob<int8_t>;
+extern template class InferenceEngine::TBlob<uint8_t>;
+extern template class InferenceEngine::TBlob<int>;
+extern template class InferenceEngine::TBlob<long>;
+
 /**
  * @deprecated Use InferenceEngine::make_shared_blob(const TensorDesc&)
  * @brief Creates a blob with given precision and dimensions.
@@ -940,7 +945,7 @@ inline typename InferenceEngine::TBlob<Type>::Ptr make_shared_blob(const TensorD
  * @return A shared pointer to the newly created blob of the given type
  */
 template<typename TypeTo>
-INFERENCE_ENGINE_DEPRECATED
+// INFERENCE_ENGINE_DEPRECATED
 inline typename InferenceEngine::TBlob<TypeTo>::Ptr make_shared_blob(TBlob<TypeTo> &&arg) {
     return std::make_shared<InferenceEngine::TBlob<TypeTo>>(std::move(arg));
 }

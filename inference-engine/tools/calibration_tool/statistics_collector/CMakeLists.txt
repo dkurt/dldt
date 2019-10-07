@@ -50,7 +50,7 @@ target_include_directories(${TARGET_NAME_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 target_link_libraries(${TARGET_NAME_LIB} PUBLIC inference_engine ${OpenCV_LIBRARIES})
 target_link_libraries(${TARGET_NAME} ${TARGET_NAME_LIB} gflags)
 
-if(UNIX)
+if((NOT ANDROID) AND (UNIX))
     target_link_libraries(${TARGET_NAME} ${LIB_DL} pthread)
 endif()
 set_ie_threading_interface_for(${TARGET_NAME_LIB})

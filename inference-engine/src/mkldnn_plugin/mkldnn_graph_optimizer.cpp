@@ -831,5 +831,3 @@ bool MKLDNNGraphOptimizer::IsOneOf(Type type, std::vector<Type> types) {
     }
     return false;
 }
-
-

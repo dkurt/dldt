@@ -177,7 +177,7 @@ macro(ie_add_sample)
     target_link_libraries(${IE_SAMPLE_NAME} PRIVATE ${OpenCV_LIBRARIES} ${InferenceEngine_LIBRARIES}
                                                     ${IE_SAMPLE_DEPENDENCIES} IE::ie_cpu_extension gflags)
 
-    if(UNIX)
+    if((NOT ANDROID) AND (UNIX))
         target_link_libraries(${IE_SAMPLE_NAME} PRIVATE pthread)
     endif()
 

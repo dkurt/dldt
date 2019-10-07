@@ -145,7 +145,9 @@ logprintf(enum mvLog_t lvl, const char * func, const int line,
     va_start (args, format);
 
     char threadName[20] = {0};
+#ifndef ANDROID
     pthread_getname_np(pthread_self(), threadName, sizeof(threadName));
+#endif
 
 #ifdef __RTEMS__
     if(!rtems_interrupt_is_in_progress())

@@ -617,7 +617,13 @@ ncStatus_t ncDeviceOpen(struct ncDeviceHandle_t **deviceHandlePtr,
             exit(1);
         }
 #else
-        global_lock_fd = open("/tmp/mvnc.mutex", O_CREAT, 0660);
+        global_lock_fd = open(
+#ifdef ANDROID
+            "/data/local/tmp/mvnc.mutex",
+#else
+            "/tmp/mvnc.mutex",
+#endif
+            O_CREAT, 0660);
         if (global_lock_fd == -1) {
             mvLog(MVLOG_ERROR, "global mutex initialization failed");
             exit(1);
@@ -1272,6 +1278,7 @@ static void* debugConsoleThreadReader(void* ctx) {
 }
 
 static void printfOverXLinkClose(struct _devicePrivate_t *d) {
+#ifndef ANDROID
     if(d->printf_over_xlink_stream_id != INVALID_STREAM_ID) {
         /* Tell device stop redirect STDIO to XLink Console */
         deviceSetStdIO2XLink(d, 0);
@@ -1288,6 +1295,7 @@ static void printfOverXLinkClose(struct _devicePrivate_t *d) {
         close(d->printf_over_xlink_conn_fd);
         d->printf_over_xlink_conn_fd = -1;
     }
+#endif
 }
 
 // FIXME: update the function below to use mvLog instead of printf for consistency: #16773

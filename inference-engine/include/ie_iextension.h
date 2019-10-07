@@ -71,14 +71,14 @@ struct LayerConfig {
 /**
  * @brief This class provides interface for extension implementations
  */
-class ILayerImpl {
+class INFERENCE_ENGINE_API_CLASS(ILayerImpl) {
 public:
     using Ptr = std::shared_ptr<ILayerImpl>;
 
     /**
      * @brief Destructor
      */
-    virtual ~ILayerImpl() = default;
+    virtual ~ILayerImpl();
 
     /**
      * @brief Gets all supported configurations for the current layer
@@ -100,7 +100,7 @@ public:
 /**
  * @brief This class provides interface for the implementation with the custom execution code
  */
-class ILayerExecImpl : public ILayerImpl {
+class INFERENCE_ENGINE_API_CLASS(ILayerExecImpl) : public ILayerImpl {
 public:
     /**
      * @brief Execute method
@@ -111,6 +111,8 @@ public:
      */
     virtual StatusCode execute(std::vector<Blob::Ptr>& inputs,
                                std::vector<Blob::Ptr>& outputs, ResponseDesc* resp) noexcept = 0;
+
+    virtual ~ILayerExecImpl();
 };
 
 /**

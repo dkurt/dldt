@@ -32,7 +32,7 @@ using OutputsDataMap = std::map<std::string, DataPtr>;
 /**
  * @brief This is the main interface to describe the NN topology
  */
-class ICNNNetwork : public details::IRelease {
+class INFERENCE_ENGINE_API_CLASS(ICNNNetwork) : public details::IRelease {
 public:
     using Ptr = std::shared_ptr<ICNNNetwork>;
 
@@ -202,5 +202,7 @@ public:
      * @return Status code of the operation
      */
     virtual StatusCode serialize(const std::string &xmlPath, const std::string &binPath, ResponseDesc* resp) const noexcept = 0;
+
+    virtual ~ICNNNetwork();
 };
 }  // namespace InferenceEngine

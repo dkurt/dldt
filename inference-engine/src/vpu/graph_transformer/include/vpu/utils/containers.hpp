@@ -243,7 +243,11 @@ public:
 
     inline ~SmallVector() = default;
 
+#ifdef ANDROID
+    inline explicit SmallVector(size_type count) : _allocator(_bufs), _base(count, 0, _allocator) {}
+#else
     inline explicit SmallVector(size_type count) : _allocator(_bufs), _base(count, _allocator) {}
+#endif
     inline SmallVector(size_type count, const T& value) : _allocator(_bufs), _base(count, value, _allocator) {}
     inline SmallVector(std::initializer_list<T> init) : _allocator(_bufs), _base(init, _allocator) {}
 

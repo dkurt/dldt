@@ -19,6 +19,8 @@ using namespace std;
 using namespace InferenceEngine;
 using namespace InferenceEngine::details;
 
+ICNNNetwork::~ICNNNetwork() {}
+
 CNNNetworkImpl::CNNNetworkImpl(): _targetDevice(TargetDevice::eDefault), _stats(new CNNNetworkStatsImpl()) {
 }
 
