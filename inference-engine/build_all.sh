@@ -1,6 +1,7 @@
 #!/bin/bash
 
-NUM_THREADS=8
+NUM_THREADS=$(nproc)
+ANDROID_API=21
 
 build_tbb() {
   # Download Android NDK 16b
@@ -15,7 +16,7 @@ build_tbb() {
     git clone https://github.com/intel/tbb/ --depth 1
     cd tbb
     export NDK_ROOT=../android-ndk-r16b/
-    ../android-ndk-r16b/ndk-build target=android arch=intel64 compiler=clang -j${NUM_THREADS} tbb tbbmalloc
+    ../android-ndk-r16b/ndk-build target=android arch=intel64 compiler=clang api_version=${ANDROID_API} -j${NUM_THREADS} tbb tbbmalloc
     cd ..
   fi
 
@@ -43,11 +44,12 @@ build_ie() {
   /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
     -DANDROID_ABI=x86_64 \
+    -DANDROID_PLATFORM=${ANDROID_API} \
     -DENABLE_VPU=ON \
     -DTHREADING="TBB" \
     -DTBB_INCLUDE_DIRS=${TBB_ROOT}/include \
-    -DTBB_LIBRARIES_RELEASE=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so \
-    -DTBB_LIBRARIES_DEBUG=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_debug/libtbb_debug.so \
+    -DTBB_LIBRARIES_RELEASE=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-${ANDROID_API}_release/libtbb.so \
+    -DTBB_LIBRARIES_DEBUG=${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-${ANDROID_API}_debug/libtbb_debug.so \
     -DLIBUSB_INCLUDE_DIR=${LIBUSB_ROOT}/libusb \
     -DLIBUSB_LIBRARY=${LIBUSB_LIBRARY} \
     -DENABLE_GNA=OFF \
@@ -84,6 +86,7 @@ build_ocv() {
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_ANDROID_EXAMPLES=OFF \
       -DANDROID_ABI=x86_64 \
+      -DANDROID_PLATFORM=${ANDROID_API} \
       -DBUILD_TESTS=OFF \
       -DBUILD_PERF_TESTS=OFF \
       -DBUILD_SHARED_LIBS=ON \
@@ -124,9 +127,9 @@ sed -i -E 's|target_link_libraries\(ngraph PUBLIC dl pthread\)|target_link_libra
 build_ie
 
 # Copy TBB and OpenCV to the bin folder
-cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbb.so ./bin/intel64/Release/lib/
-cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libtbbmalloc.so ./bin/intel64/Release/lib/
-cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-21_release/libc++_shared.so ./bin/intel64/Release/lib/
+cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-${ANDROID_API}_release/libtbb.so ./bin/intel64/Release/lib/
+cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-${ANDROID_API}_release/libtbbmalloc.so ./bin/intel64/Release/lib/
+cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-${ANDROID_API}_release/libc++_shared.so ./bin/intel64/Release/lib/
 cp ${LIBUSB_LIBRARY} ./bin/intel64/Release/lib/
 cp ${OpenCV_DIR}/../libs/x86_64/*.so ./bin/intel64/Release/lib/
 
