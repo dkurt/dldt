@@ -38,8 +38,12 @@ build_libusb() {
 }
 
 build_ie() {
+  export INF_ENGINE_ROOT=$(readlink -f .)
   mkdir -p build && cd build
-  export INF_ENGINE_BUILD=$(readlink -f ./build)
+  export INF_ENGINE_BUILD=$(readlink -f .)
+
+  patchelf --set-soname libOpenCL.so ../thirdparty/clDNN/common/intel_ocl_icd/6.3/linux/Release/bin/x64/libOpenCL.so
+  rm -f ../bin/intel64/Release/lib/libclDNN64.so
 
   /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
@@ -74,27 +78,29 @@ build_ocv() {
     git clone https://github.com/opencv/opencv --depth 1
   fi
 
-  if [ ! -d opencv_install ]; then
-    mkdir -p opencv_build && cd opencv_build
+  mkdir -p opencv_build && cd opencv_build
 
-    export ANDROID_HOME=${ANDROID_SDK}
+  export ANDROID_HOME=${ANDROID_SDK}
 
-    /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_INSTALL_PREFIX=../opencv_install \
-      -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
-      -DANDROID_SDK=${ANDROID_SDK} \
-      -DBUILD_EXAMPLES=OFF \
-      -DBUILD_ANDROID_EXAMPLES=OFF \
-      -DANDROID_ABI=x86_64 \
-      -DANDROID_PLATFORM=${ANDROID_API} \
-      -DBUILD_TESTS=OFF \
-      -DBUILD_PERF_TESTS=OFF \
-      -DBUILD_SHARED_LIBS=ON \
-      -DBUILD_LIST=java,core,imgcodecs,videoio,imgproc ../opencv && \
-      make -j${NUM_THREADS} && make install
+  /usr/local/bin/cmake -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=../opencv_install \
+    -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
+    -DANDROID_SDK=${ANDROID_SDK} \
+    -DBUILD_EXAMPLES=OFF \
+    -DBUILD_ANDROID_EXAMPLES=OFF \
+    -DANDROID_ABI=x86_64 \
+    -DANDROID_PLATFORM=${ANDROID_API} \
+    -DBUILD_TESTS=OFF \
+    -DBUILD_PERF_TESTS=OFF \
+    -DBUILD_SHARED_LIBS=ON \
+    -DWITH_INF_ENGINE=${1} \
+    -DINF_ENGINE_LIB_DIRS=${INF_ENGINE_ROOT}/bin/intel64/Release/lib \
+    -DINF_ENGINE_INCLUDE_DIRS=${INF_ENGINE_ROOT}/include \
+    -DCMAKE_FIND_ROOT_PATH=${INF_ENGINE_ROOT} \
+  ../opencv && \
+  make -j${NUM_THREADS} && make install
 
-    cd ..
-  fi
+  cd ..
 
   export OpenCV_DIR=$(readlink -f ./opencv_install/sdk/native/jni/)
 }
@@ -116,8 +122,7 @@ build_tbb
 
 build_libusb
 
-# Build OpenCV (without Inference Engine backend)
-build_ocv
+build_ocv OFF  # Without Inference Engine
 
 # Build Inference Engine (with OpenCV)
 # Modify inference-engine/thirdparty/ngraph/src/ngraph/CMakeLists.txt
@@ -125,6 +130,8 @@ build_ocv
 # + target_link_libraries(ngraph PUBLIC dl)
 sed -i -E 's|target_link_libraries\(ngraph PUBLIC dl pthread\)|target_link_libraries\(ngraph PUBLIC dl\)|' thirdparty/ngraph/src/ngraph/CMakeLists.txt
 build_ie
+
+build_ocv ON  # With Inference Engine
 
 # Copy TBB and OpenCV to the bin folder
 cp ${TBB_ROOT}/build/linux_intel64_clang_android_NDKr16b_version_android-${ANDROID_API}_release/libtbb.so ./bin/intel64/Release/lib/

@@ -374,7 +374,14 @@ Core::Core(const std::string & xmlConfigFile) {
     std::string xmlConfigFile_ = xmlConfigFile;
     if (xmlConfigFile_.empty()) {
         // register plugins from default plugins.xml config
-        xmlConfigFile_ = FileUtils::makePath(getIELibraryPath(), "plugins.xml");
+        xmlConfigFile_ = FileUtils::makePath(
+#ifdef ANDROID
+          "/data/local/tmp",
+#else
+          getIELibraryPath(),
+#endif
+          "plugins.xml"
+        );
     }
 
     RegisterPlugins(xmlConfigFile_);
