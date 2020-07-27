@@ -9,20 +9,16 @@
 //! [op:header]
 namespace TemplateExtension {
 
-class Operation : public ngraph::op::Op {
+class FFT1D : public ngraph::op::Op {
 public:
-    static constexpr ngraph::NodeTypeInfo type_info{"Template", 0};
+    static constexpr ngraph::NodeTypeInfo type_info{"FFT1D", 0};
     const ngraph::NodeTypeInfo& get_type_info() const override { return type_info;  }
 
-    Operation() = default;
-    Operation(const ngraph::Output<ngraph::Node>& arg, int64_t add);
+    FFT1D() = default;
+    FFT1D(const ngraph::Output<ngraph::Node>& arg);
     void validate_and_infer_types() override;
     std::shared_ptr<ngraph::Node> copy_with_new_args(const ngraph::NodeVector& new_args) const override;
     bool visit_attributes(ngraph::AttributeVisitor& visitor) override;
-    int64_t getAddAttr() { return add; }
-
-private:
-    int64_t add;
 };
 //! [op:header]
 

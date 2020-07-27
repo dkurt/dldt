@@ -31,7 +31,8 @@ void Extension::GetVersion(const InferenceEngine::Version *&versionInfo) const n
 std::map<std::string, ngraph::OpSet> Extension::getOpSets() {
     std::map<std::string, ngraph::OpSet> opsets;
     ngraph::OpSet opset;
-    opset.insert<Operation>();
+    std::cout << "getOpSets" << std::endl;
+    opset.insert<FFT1D>();
     opsets["custom_opset"] = opset;
     return opsets;
 }
@@ -39,7 +40,7 @@ std::map<std::string, ngraph::OpSet> Extension::getOpSets() {
 
 //! [extension:getImplTypes]
 std::vector<std::string> Extension::getImplTypes(const std::shared_ptr<ngraph::Node> &node) {
-    if (std::dynamic_pointer_cast<Operation>(node)) {
+    if (std::dynamic_pointer_cast<FFT1D>(node)) {
         return {"CPU"};
     }
     return {};
@@ -48,8 +49,9 @@ std::vector<std::string> Extension::getImplTypes(const std::shared_ptr<ngraph::N
 
 //! [extension:getImplementation]
 InferenceEngine::ILayerImpl::Ptr Extension::getImplementation(const std::shared_ptr<ngraph::Node> &node, const std::string &implType) {
-    if (std::dynamic_pointer_cast<Operation>(node) && implType == "CPU") {
-        return std::make_shared<OpImplementation>(node);
+    std::cout << "getImplementation" << std::endl;
+    if (std::dynamic_pointer_cast<FFT1D>(node) && implType == "CPU") {
+        return std::make_shared<FFT1DImpl>(node);
     }
     return nullptr;
 }
@@ -60,6 +62,7 @@ InferenceEngine::ILayerImpl::Ptr Extension::getImplementation(const std::shared_
 INFERENCE_EXTENSION_API(InferenceEngine::StatusCode) InferenceEngine::CreateExtension(InferenceEngine::IExtension *&ext,
                                                                                       InferenceEngine::ResponseDesc *resp) noexcept {
     try {
+        std::cout << "CreateExtension" << std::endl;
         ext = new Extension();
         return OK;
     } catch (std::exception &ex) {

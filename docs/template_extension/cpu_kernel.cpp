@@ -9,20 +9,22 @@
 using namespace TemplateExtension;
 
 //! [cpu_implementation:ctor]
-OpImplementation::OpImplementation(const std::shared_ptr<ngraph::Node> &node) {
+FFT1DImpl::FFT1DImpl(const std::shared_ptr<ngraph::Node> &node) {
+        std::cout << " FFT1DImpl" << std::endl;
+
     try {
-        auto castedNode = std::dynamic_pointer_cast<Operation>(node);
-        if (!castedNode)
-            THROW_IE_EXCEPTION << "Cannot create implementation for unknown operation!";
-        if (castedNode->inputs().size() != 1 || castedNode->outputs().size() != 1)
-            THROW_IE_EXCEPTION << "Cannot create implementation for operation with incorrect number of inputs or outputs!";
-        if (castedNode->get_input_partial_shape(0).is_dynamic() || castedNode->get_output_partial_shape(0).is_dynamic())
-            THROW_IE_EXCEPTION << "Cannot create implementation for op with dynamic shapes!";
-        if (castedNode->get_input_shape(0).size() != 4 || castedNode->get_output_shape(0).size() != 4)
-            THROW_IE_EXCEPTION << "Operation supports only 4d tensors for input and output.";
-        if (castedNode->get_input_element_type(0) != ngraph::element::f32 || castedNode->get_output_element_type(0) != ngraph::element::f32)
-            THROW_IE_EXCEPTION << "Operation supports only FP32 tensors.";
-        add = castedNode->getAddAttr();
+        // auto castedNode = std::dynamic_pointer_cast<FFT1DImpl>(node);
+        // if (!castedNode)
+        //     THROW_IE_EXCEPTION << "Cannot create implementation for unknown operation!";
+        // if (castedNode->inputs().size() != 1 || castedNode->outputs().size() != 1)
+        //     THROW_IE_EXCEPTION << "Cannot create implementation for operation with incorrect number of inputs or outputs!";
+        // if (castedNode->get_input_partial_shape(0).is_dynamic() || castedNode->get_output_partial_shape(0).is_dynamic())
+        //     THROW_IE_EXCEPTION << "Cannot create implementation for op with dynamic shapes!";
+        // if (castedNode->get_input_shape(0).size() != 4 || castedNode->get_output_shape(0).size() != 4)
+        //     THROW_IE_EXCEPTION << "Operation supports only 4d tensors for input and output.";
+        // if (castedNode->get_input_element_type(0) != ngraph::element::f32 || castedNode->get_output_element_type(0) != ngraph::element::f32)
+        //     THROW_IE_EXCEPTION << "Operation supports only FP32 tensors.";
+        // add = castedNode->getAddAttr();
     } catch (InferenceEngine::details::InferenceEngineException& ex) {
         error = ex.what();
     }
@@ -30,8 +32,9 @@ OpImplementation::OpImplementation(const std::shared_ptr<ngraph::Node> &node) {
 //! [cpu_implementation:ctor]
 
 //! [cpu_implementation:getSupportedConfigurations]
-InferenceEngine::StatusCode OpImplementation::getSupportedConfigurations(std::vector<InferenceEngine::LayerConfig> &conf,
-                                                                         InferenceEngine::ResponseDesc *resp) noexcept {
+InferenceEngine::StatusCode FFT1DImpl::getSupportedConfigurations(std::vector<InferenceEngine::LayerConfig> &conf,
+                                                                  InferenceEngine::ResponseDesc *resp) noexcept {
+    std::cout << " getSupportedConfigurations" << std::endl;
     auto createConfig = [](const InferenceEngine::SizeVector inShape, const InferenceEngine::SizeVector& outShape, bool planar) {
         InferenceEngine::LayerConfig config;
         config.dynBatchSupport = false;
@@ -83,7 +86,7 @@ InferenceEngine::StatusCode OpImplementation::getSupportedConfigurations(std::ve
 //! [cpu_implementation:getSupportedConfigurations]
 
 //! [cpu_implementation:init]
-InferenceEngine::StatusCode OpImplementation::init(InferenceEngine::LayerConfig &config, InferenceEngine::ResponseDesc *resp) noexcept {
+InferenceEngine::StatusCode FFT1DImpl::init(InferenceEngine::LayerConfig &config, InferenceEngine::ResponseDesc *resp) noexcept {
     try {
         if (config.inConfs.size() != 1 || config.outConfs.size() != 1) {
             THROW_IE_EXCEPTION << "Operation cannot be initialized with incorrect number of inputs/outputs!";
@@ -110,15 +113,16 @@ InferenceEngine::StatusCode OpImplementation::init(InferenceEngine::LayerConfig 
 //! [cpu_implementation:init]
 
 //! [cpu_implementation:execute]
-InferenceEngine::StatusCode OpImplementation::execute(std::vector<InferenceEngine::Blob::Ptr> &inputs,
-                                                      std::vector<InferenceEngine::Blob::Ptr> &outputs,
-                                                      InferenceEngine::ResponseDesc *resp) noexcept {
-    const float* src_data = inputs[0]->cbuffer().as<const float *>() + inputs[0]->getTensorDesc().getBlockingDesc().getOffsetPadding();
-    float *dst_data = outputs[0]->buffer().as<float *>() + outputs[0]->getTensorDesc().getBlockingDesc().getOffsetPadding();
+InferenceEngine::StatusCode FFT1DImpl::execute(std::vector<InferenceEngine::Blob::Ptr> &inputs,
+                                               std::vector<InferenceEngine::Blob::Ptr> &outputs,
+                                               InferenceEngine::ResponseDesc *resp) noexcept {
+    // const float* src_data = inputs[0]->cbuffer().as<const float *>() + inputs[0]->getTensorDesc().getBlockingDesc().getOffsetPadding();
+    // float *dst_data = outputs[0]->buffer().as<float *>() + outputs[0]->getTensorDesc().getBlockingDesc().getOffsetPadding();
 
-    for (size_t i = 0; i < inputs[0]->size(); i++) {
-        dst_data[i] = src_data[i] + add;
-    }
+    // for (size_t i = 0; i < inputs[0]->size(); i++) {
+    //     dst_data[i] = src_data[i] + add;
+    // }
+    std::cout << "exectute" << std::endl;
     return InferenceEngine::OK;
 }
 //! [cpu_implementation:execute]
