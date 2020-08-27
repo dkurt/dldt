@@ -6,12 +6,20 @@ import org.junit.runner.Description;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 
+<<<<<<< HEAD
 import java.nio.file.Paths;
 
 import org.intel.openvino.*;
 
 @Ignore
 public class IETest {
+=======
+import org.intel.openvino.*;
+
+import java.nio.file.Paths;
+
+public class IETest extends TestCase {
+>>>>>>> [JAVA] Code style check added
     String modelXml;
     String modelBin;
     static String device;
@@ -23,8 +31,27 @@ public class IETest {
             System.err.println("Failed to load Inference Engine library\n" + e);
             System.exit(1);
         }
+<<<<<<< HEAD
         modelXml = Paths.get(System.getenv("MODELS_PATH"), "models", "test_model", "test_model_fp32.xml").toString();
         modelBin = Paths.get(System.getenv("MODELS_PATH"), "models", "test_model", "test_model_fp32.bin").toString();
+=======
+
+        modelXml =
+                Paths.get(
+                                System.getenv("MODELS_PATH"),
+                                "models",
+                                "test_model",
+                                "test_model_fp32.xml")
+                        .toString();
+        modelBin =
+                Paths.get(
+                                System.getenv("MODELS_PATH"),
+                                "models",
+                                "test_model",
+                                "test_model_fp32.bin")
+                        .toString();
+        device = "CPU";
+>>>>>>> [JAVA] Code style check added
     }
 
     @Rule
