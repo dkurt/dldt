@@ -59,6 +59,8 @@ class Interpolate(Op):
 
         assert src_shape is not None
         dst_shape = node.in_port(1).data.get_value()
+        for i in range(len(src_shape)):
+            dst_shape[i] = src_shape[i] * dst_shape[i]
         assert dst_shape is not None
 
         if node.has_valid('axes'):
