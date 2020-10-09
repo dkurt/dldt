@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 # Callback which is executed after nn.Module forward
 def forward_hook(self, inputs, output):
+    print('forward_hook', self)
     graph = inputs[0].graph
     assert(graph is not None)
     layer_type = self.__class__.__name__
@@ -62,12 +63,20 @@ class OpenVINOTensor(object):
         self.graph = None
         self.node_name = None
         self.shape = value.shape
+        self.requires_grad = self._value.requires_grad
+        assert(not self.requires_grad)
 
     def __repr__(self):
         return self.node_name
 
     def tensor(self):
         return self._value
+
+    def to(self, device):
+        return self._value
+
+    def numel(self):
+        return self._value.numel()
 
     def dim(self):
         return self._value.dim()
@@ -81,6 +90,43 @@ class OpenVINOTensor(object):
         class Add(nn.Module):
             pass
         forward_hook(Add(), (self, a), self)
+        return self
+
+    def __add__(self, a):
+        res = OpenVINOTensor(self._value + a._value)
+        res.graph = self.graph
+        class Add(nn.Module):
+            pass
+        forward_hook(Add(), (self, a), res)
+        return res
+
+    def view(self, *shape):
+        res = OpenVINOTensor(self._value.view(shape))
+        res.graph = self.graph
+        class Reshape(nn.Module):
+            pass
+        forward_hook(Reshape(), (self,), res)
+        return res
+
+    def reshape(self, *shape):
+        res = OpenVINOTensor(self._value.reshape(shape))
+        res.graph = self.graph
+        class Reshape(nn.Module):
+            pass
+        forward_hook(Reshape(), (self,), res)
+        return res
+
+    def permute(self, *order):
+        print(self._value.shape)
+        res = OpenVINOTensor(self._value.permute(order))
+        res.graph = self.graph
+        class Transpose(nn.Module):
+            pass
+        forward_hook(Transpose(), (self,), res)
+        return res
+
+    def __getitem__(self, idx):
+        assert(idx == 0)
         return self
 
     def __torch_function__(self, func, types, args=(), kwargs=None):
@@ -111,13 +157,84 @@ def register_functional_hook(func):
         output.graph = input.graph
         return output
 
-register_functional_hook(torch.conv2d)
+# register_functional_hook(torch.conv2d)
 register_functional_hook(F.batch_norm)
-register_functional_hook(F.relu)
-register_functional_hook(F.max_pool2d)
+# register_functional_hook(F.relu)
+# register_functional_hook(F.max_pool2d)
 register_functional_hook(F.adaptive_avg_pool2d)
 register_functional_hook(F.linear)
 register_functional_hook(F.dropout)
+
+
+@implements(F.max_pool2d)
+def function_hook(input, *args, **kwargs):
+
+    class MaxPool2d(nn.Module):
+        def __init__(self, kernel_size, stride, padding, dilation, return_indices, ceil_mode):
+            super().__init__()
+            self.kernel_size = kernel_size
+            self.stride = stride
+            self.padding = padding
+            self.dilation = dilation
+            self.return_indices = return_indices
+            self.ceil_mode = ceil_mode
+
+    output = OpenVINOTensor(F.max_pool2d(input.tensor(), *args, **kwargs))
+    output.graph = input.graph
+
+    forward_hook(MaxPool2d(*args, **kwargs), (input,), output)
+    return output
+
+
+@implements(torch.relu_)
+def function_hook(input, *args, **kwargs):
+
+    class ReLU(nn.Module):
+        def __init__(self):
+            super().__init__()
+
+    output = OpenVINOTensor(torch.relu_(input.tensor(), *args, **kwargs))
+    output.graph = input.graph
+
+    forward_hook(ReLU(*args, **kwargs), (input,), output)
+    return output
+
+
+@implements(F.relu)
+def function_hook(input, *args, **kwargs):
+
+    class ReLU(nn.Module):
+        def __init__(self, inplace):
+            super().__init__()
+
+    output = OpenVINOTensor(F.relu(input.tensor(), *args, **kwargs))
+    output.graph = input.graph
+
+    forward_hook(ReLU(*args, **kwargs), (input,), output)
+    return output
+
+
+@implements(torch.conv2d)
+def function_hook(input, *args, **kwargs):
+
+    class Conv2d(nn.Module):
+        def __init__(self, in_channels, out_channels, kernel_size, stride, padding, dilation, groups=1, bias=True, padding_mode='zeros'):
+            super().__init__()
+            self.in_channels = in_channels
+            self.out_channels = out_channels
+            self.kernel_size = kernel_size
+            self.stride = stride
+            self.padding = padding
+            self.dilation = dilation
+            self.groups = groups
+            self.bias = bias
+            self.padding_mode = padding_mode
+
+    output = OpenVINOTensor(torch.conv2d(input.tensor(), *args, **kwargs))
+    output.graph = input.graph
+
+    forward_hook(Conv2d(*args, **kwargs), (input,), output)
+    return output
 
 
 @implements(torch.flatten)
@@ -156,11 +273,14 @@ def function_hook(input, *args, **kwargs):
 
 # Workaround for a bug https://github.com/pytorch/pytorch/issues/34294
 original_cat = torch.cat
-def concat(inputs, dim):
+def concat(inputs, dim=0):
     class Concat(nn.Module):
         def __init__(self, dim):
             super().__init__()
             self.dim = dim
+
+    if not isinstance(inputs[0], OpenVINOTensor):
+        return original_cat(inputs, dim)
 
     tensors = [inp.tensor() for inp in inputs]
     output = OpenVINOTensor(original_cat(tensors, dim))

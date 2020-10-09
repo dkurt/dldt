@@ -31,6 +31,42 @@ from mo.graph.graph import Graph
 
 from .hooks import OpenVINOTensor, forward_hook
 
+def detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(func, anchors, pred_logits, pred_anchor_deltas, image_sizes):
+    print('detectron2_modeling_meta_arch_retinanet_RetinaNet_inference')
+
+    # Convert from lists of OpenVINOTensor to torch.tensor and perform origin run
+    pred_logits_t = [v.tensor() for v in pred_logits]
+    pred_anchor_deltas_t = [v.tensor() for v in pred_anchor_deltas]
+    output = func(anchors, pred_logits_t, pred_anchor_deltas_t, image_sizes)
+
+    # Concatenate the inputs (should be tracked)
+    logist = torch.cat(pred_logits, dim=1)
+    deltas = torch.cat(pred_anchor_deltas, dim=1)
+    assert(isinstance(logist, OpenVINOTensor))
+    assert(isinstance(deltas, OpenVINOTensor))
+
+    # Create an alias
+    class DetectionOutput(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+
+    outputs = [OpenVINOTensor(output[0].pred_boxes.tensor),
+               OpenVINOTensor(output[0].scores),
+               OpenVINOTensor(output[0].pred_classes)]
+    for out in outputs:
+        out.graph = pred_logits[0].graph
+
+    print(1)
+    forward_hook(DetectionOutput(), (logist, deltas), outputs[1])
+    print(2)
+    return output
+
+
+def detectron2_modeling_meta_arch_retinanet_RetinaNet_forward(forward, batched_inputs):
+    print('detectron2_modeling_meta_arch_retinanet_RetinaNet_forward')
+    output = forward(batched_inputs)
+    print('*********************')
+
 
 class PyTorchLoader(Loader):
     enabled = True
@@ -55,7 +91,20 @@ class PyTorchLoader(Loader):
             module.register_forward_hook(forward_hook)
 
         graph.add_node('input', kind='op', op='Parameter', name='input', shape=list(inp.shape))
-        outs = model(inp)
+
+        # def register_method_hook(func, hook):
+        #     old_func = func
+        #     func = lambda *args: hook(old_func, *args)
+        #
+        # register_method_hook(model.inference, detectron2_modeling_meta_arch_retinanet_RetinaNet_inference)
+        # register_method_hook(model.forward, detectron2_modeling_meta_arch_retinanet_RetinaNet_forward)
+        old_func = model.inference
+        model.inference = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(old_func, *args)
+        old_forward = model.forward
+        model.forward = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_forward(old_forward, *args)
+
+        with torch.no_grad():
+            outs = model([{'image': inp}])
 
         # Add output nodes
         if not hasattr(outs, '__contains__'):  # if a single tensor
@@ -63,6 +112,7 @@ class PyTorchLoader(Loader):
         if isinstance(outs, dict):
             outs = outs.values()
 
+        print(outs)
         for out in outs:
             name = out.node_name
             graph.add_node('output', kind='op', op='Result')
