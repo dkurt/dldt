@@ -47,8 +47,13 @@ def detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(func, anchors, p
 
     # Create an alias
     class DetectionOutput(torch.nn.Module):
-        def __init__(self):
+        def __init__(self, anchors):
             super().__init__()
+            self.anchors = anchors
+            self.variance_encoded_in_target = True
+
+        def state_dict(self):
+            return {'anchors': anchors}
 
     outputs = [OpenVINOTensor(output[0].pred_boxes.tensor),
                OpenVINOTensor(output[0].scores),
@@ -56,16 +61,19 @@ def detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(func, anchors, p
     for out in outputs:
         out.graph = pred_logits[0].graph
 
-    print(1)
-    forward_hook(DetectionOutput(), (logist, deltas), outputs[1])
-    print(2)
+    # Concatenate anchors
+    anchors = torch.cat([a.tensor for a in anchors])
+
+    forward_hook(DetectionOutput(anchors), (deltas, logist), outputs[1])
     return output
 
 
 def detectron2_modeling_meta_arch_retinanet_RetinaNet_forward(forward, batched_inputs):
     print('detectron2_modeling_meta_arch_retinanet_RetinaNet_forward')
     output = forward(batched_inputs)
-    print('*********************')
+    output = OpenVINOTensor(output[0]['instances'].scores)
+    output.node_name = 'DetectionOutput_'
+    return output
 
 
 class PyTorchLoader(Loader):
@@ -112,7 +120,6 @@ class PyTorchLoader(Loader):
         if isinstance(outs, dict):
             outs = outs.values()
 
-        print(outs)
         for out in outs:
             name = out.node_name
             graph.add_node('output', kind='op', op='Result')

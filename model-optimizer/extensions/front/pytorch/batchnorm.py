@@ -43,3 +43,13 @@ class BatchNorm2d(FrontReplacementOp):
         inputs = [node.in_node(i) for i in range(5)]
         bn = BatchNorm(graph, dict(name=node.name, eps=node.module.eps)).create_node(inputs)
         return [bn.id]
+
+
+class FrozenBatchNorm2d(FrontReplacementOp):
+    op = 'FrozenBatchNorm2d'
+    enabled = True
+
+    def replace_op(self, graph: Graph, node: Node):
+        inputs = [node.in_node(i) for i in range(5)]
+        bn = BatchNorm(graph, dict(name=node.name, eps=node.module.eps)).create_node(inputs)
+        return [bn.id]
