@@ -76,7 +76,7 @@ class OpenVINOTensor(object):
         return self._value
 
     def to(self, device):
-        return self._value
+        return self
 
     def numel(self):
         return self._value.numel()
@@ -103,6 +103,17 @@ class OpenVINOTensor(object):
         class Add(nn.Module):
             pass
         return forward_hook(Add(), (self, a), res)
+
+
+    def __rmul__(self, a):
+        class Mul(nn.Module):
+            def __init__(self, value):
+                super().__init__()
+                self.register_buffer('mul', value)
+
+        res = self._value * a
+        return forward_hook(Mul(a), (self,), res)
+
 
     def view(self, *shape):
         res = self._value.view(shape)
@@ -291,6 +302,18 @@ def function_hook(input, *args, **kwargs):
 
     output = F.interpolate(input.tensor(), *args, **kwargs)
     return forward_hook(Upsample(*args, **kwargs), (input,), output)
+
+
+# x - value
+@implements(torch.rsub)
+def function_hook(value, x):
+    class Sub(nn.Module):
+        def __init__(self, value):
+            super().__init__()
+            self.register_buffer('sub', value)
+
+    res = x._value - value
+    return forward_hook(Sub(value), (x,), res)
 
 
 # Workaround for a bug https://github.com/pytorch/pytorch/issues/34294

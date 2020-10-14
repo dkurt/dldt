@@ -15,7 +15,7 @@
 """
 import numpy as np
 
-from extensions.ops.elementwise import Add
+from extensions.ops.elementwise import *
 from mo.front.extractor import FrontExtractorOp
 from mo.graph.graph import Node
 from mo.ops.eltwise_n import EltwiseNAdd, EltwiseNMax
@@ -29,4 +29,24 @@ class AddFrontExtractor(FrontExtractorOp):
     @classmethod
     def extract(cls, node: Node):
         Add.update_node_stat(node)
+        return cls.enabled
+
+
+class SubFrontExtractor(FrontExtractorOp):
+    op = 'Sub'
+    enabled = True
+
+    @classmethod
+    def extract(cls, node: Node):
+        Sub.update_node_stat(node)
+        return cls.enabled
+
+
+class MulFrontExtractor(FrontExtractorOp):
+    op = 'Mul'
+    enabled = True
+
+    @classmethod
+    def extract(cls, node: Node):
+        Mul.update_node_stat(node)
         return cls.enabled

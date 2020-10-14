@@ -20,6 +20,8 @@ from __future__ import unicode_literals
 
 import logging as log
 
+from collections import namedtuple
+
 import torch
 from torch.autograd import Variable
 
@@ -70,10 +72,18 @@ def detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(func, anchors, p
 
 def detectron2_modeling_meta_arch_retinanet_RetinaNet_forward(forward, batched_inputs):
     print('detectron2_modeling_meta_arch_retinanet_RetinaNet_forward')
-    output = forward(batched_inputs)
+    output = forward([{'image': batched_inputs}])
     output = OpenVINOTensor(output[0]['instances'].scores)
     output.node_name = 'DetectionOutput_'
     return output
+
+
+def detectron2_modeling_meta_arch_retinanet_RetinaNet_preprocess_image(self, forward, inp):
+    print('detectron2_modeling_meta_arch_retinanet_RetinaNet_preprocess_image')
+    out = namedtuple('ImageList', ['tensor', 'image_sizes'])
+    out.tensor = (inp[0]['image'] - self.pixel_mean) / self.pixel_std
+    out.image_sizes = [out.tensor.shape[-2:]]
+    return out
 
 
 class PyTorchLoader(Loader):
@@ -87,16 +97,7 @@ class PyTorchLoader(Loader):
         update_extractors_with_extensions(pytorch_op_extractors)
 
         # Create a dummy input
-        import cv2 as cv
-        import numpy as np
-        img = cv.imread('/home/dkurt/Pictures/dog416.png')
-        inp = cv.resize(img, (320, 320)).astype(np.float32).transpose(2, 0, 1)
-        inp[0] -= 103.5300
-        inp[1] -= 116.2800
-        inp[2] -= 123.6750
-        inp = inp.reshape(1, 3, 320, 320)
-        inp = OpenVINOTensor(torch.tensor(inp))
-        # inp = OpenVINOTensor(torch.randn(list(argv.placeholder_shapes)))
+        inp = OpenVINOTensor(torch.randn(list(argv.placeholder_shapes)))
         inp.graph = graph
         inp.node_name = 'input'
 
@@ -119,9 +120,11 @@ class PyTorchLoader(Loader):
         model.inference = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(old_func, *args)
         old_forward = model.forward
         model.forward = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_forward(old_forward, *args)
+        old_preprocess_image = model.preprocess_image
+        model.preprocess_image = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_preprocess_image(model, old_preprocess_image, *args)
 
         with torch.no_grad():
-            outs = model([{'image': inp}])
+            outs = model(inp)
 
         # Add output nodes
         if not hasattr(outs, '__contains__'):  # if a single tensor
