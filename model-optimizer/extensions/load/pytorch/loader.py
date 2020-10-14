@@ -20,8 +20,6 @@ from __future__ import unicode_literals
 
 import logging as log
 
-from collections import namedtuple
-
 import torch
 from torch.autograd import Variable
 
@@ -32,58 +30,7 @@ from mo.front.pytorch.extractor import pytorch_op_extractor, pytorch_op_extracto
 from mo.graph.graph import Graph
 
 from .hooks import OpenVINOTensor, forward_hook
-
-def detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(func, anchors, pred_logits, pred_anchor_deltas, image_sizes):
-    print('detectron2_modeling_meta_arch_retinanet_RetinaNet_inference')
-
-    # Convert from lists of OpenVINOTensor to torch.tensor and perform origin run
-    pred_logits_t = [v.tensor() for v in pred_logits]
-    pred_anchor_deltas_t = [v.tensor() for v in pred_anchor_deltas]
-    output = func(anchors, pred_logits_t, pred_anchor_deltas_t, image_sizes)
-
-    # Concatenate the inputs (should be tracked)
-    logist = torch.cat(pred_logits, dim=1).view(1, -1).sigmoid()
-    deltas = torch.cat(pred_anchor_deltas, dim=1).view(1, -1)
-    assert(isinstance(logist, OpenVINOTensor))
-    assert(isinstance(deltas, OpenVINOTensor))
-
-    # Create an alias
-    class DetectionOutput(torch.nn.Module):
-        def __init__(self, anchors):
-            super().__init__()
-            self.anchors = anchors
-            self.variance_encoded_in_target = True
-
-        def state_dict(self):
-            return {'anchors': anchors}
-
-    outputs = [OpenVINOTensor(output[0].pred_boxes.tensor),
-               OpenVINOTensor(output[0].scores),
-               OpenVINOTensor(output[0].pred_classes)]
-    for out in outputs:
-        out.graph = pred_logits[0].graph
-
-    # Concatenate anchors
-    anchors = torch.cat([a.tensor for a in anchors]).view(1, 1, -1)
-
-    forward_hook(DetectionOutput(anchors), (deltas, logist), outputs[1])
-    return output
-
-
-def detectron2_modeling_meta_arch_retinanet_RetinaNet_forward(forward, batched_inputs):
-    print('detectron2_modeling_meta_arch_retinanet_RetinaNet_forward')
-    output = forward([{'image': batched_inputs}])
-    output = OpenVINOTensor(output[0]['instances'].scores)
-    output.node_name = 'DetectionOutput_'
-    return output
-
-
-def detectron2_modeling_meta_arch_retinanet_RetinaNet_preprocess_image(self, forward, inp):
-    print('detectron2_modeling_meta_arch_retinanet_RetinaNet_preprocess_image')
-    out = namedtuple('ImageList', ['tensor', 'image_sizes'])
-    out.tensor = (inp[0]['image'] - self.pixel_mean) / self.pixel_std
-    out.image_sizes = [out.tensor.shape[-2:]]
-    return out
+from .model_hooks import register_model_hook
 
 
 class PyTorchLoader(Loader):
@@ -108,20 +55,9 @@ class PyTorchLoader(Loader):
                 continue
             module.register_forward_hook(forward_hook)
 
-        graph.add_node('input', kind='op', op='Parameter', name='input', shape=list(inp.shape))
+        register_model_hook(model)
 
-        # def register_method_hook(func, hook):
-        #     old_func = func
-        #     func = lambda *args: hook(old_func, *args)
-        #
-        # register_method_hook(model.inference, detectron2_modeling_meta_arch_retinanet_RetinaNet_inference)
-        # register_method_hook(model.forward, detectron2_modeling_meta_arch_retinanet_RetinaNet_forward)
-        old_func = model.inference
-        model.inference = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(old_func, *args)
-        old_forward = model.forward
-        model.forward = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_forward(old_forward, *args)
-        old_preprocess_image = model.preprocess_image
-        model.preprocess_image = lambda *args: detectron2_modeling_meta_arch_retinanet_RetinaNet_preprocess_image(model, old_preprocess_image, *args)
+        graph.add_node('input', kind='op', op='Parameter', name='input', shape=list(inp.shape))
 
         with torch.no_grad():
             outs = model(inp)

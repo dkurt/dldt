@@ -75,9 +75,6 @@ class OpenVINOTensor(object):
     def tensor(self):
         return self._value
 
-    def to(self, device):
-        return self
-
     def numel(self):
         return self._value.numel()
 
@@ -158,10 +155,6 @@ class OpenVINOTensor(object):
 
         return forward_hook(Sigmoid(), (self,), res)
 
-    def __getitem__(self, idx):
-        assert(idx == 0)
-        return self
-
     def __torch_function__(self, func, types, args=(), kwargs=None):
         if kwargs is None:
             kwargs = {}
@@ -190,9 +183,9 @@ def register_functional_hook(func):
         output.graph = input.graph
         return output
 
-# register_functional_hook(F.adaptive_avg_pool2d)
-# register_functional_hook(F.linear)
-# register_functional_hook(F.dropout)
+register_functional_hook(F.adaptive_avg_pool2d)
+register_functional_hook(F.linear)
+register_functional_hook(F.dropout)
 
 
 @implements(F.max_pool2d)

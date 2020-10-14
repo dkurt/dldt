@@ -30,11 +30,11 @@ class DetectionOutputExtractor(FrontExtractorOp):
     def extract(cls, node):
         attrs = {
             'variance_encoded_in_target': int(node.module.variance_encoded_in_target),
-            'nms_threshold': 0.5,
-            'confidence_threshold': 0.05,
-            'top_k': 5000,
-            'keep_top_k': 5000,
-            'code_type': 'caffe.PriorBoxParameter.CENTER_SIZE',
+            'nms_threshold': node.module.nms_threshold,
+            'confidence_threshold': node.module.confidence_threshold,
+            'top_k': node.module.top_k,
+            'keep_top_k': node.module.keep_top_k,
+            'code_type': node.module.code_type,
         }
         DetectionOutput.update_node_stat(node, attrs)
         return cls.enabled
