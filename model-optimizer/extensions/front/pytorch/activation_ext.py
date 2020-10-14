@@ -24,3 +24,13 @@ class ReLUExtractor(FrontExtractorOp):
     def extract(cls, node):
         ReLU.update_node_stat(node)
         return cls.enabled
+
+
+class SigmoidExtractor(FrontExtractorOp):
+    op = 'Sigmoid'
+    enabled = True
+
+    @classmethod
+    def extract(cls, node):
+        Sigmoid.update_node_stat(node)
+        return cls.enabled

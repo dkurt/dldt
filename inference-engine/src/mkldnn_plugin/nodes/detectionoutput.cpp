@@ -485,6 +485,18 @@ void DetectionOutputImpl::decodeBBoxes(const float *prior_data,
         float loc_xmax = loc_data[4*p*_num_loc_classes + 2];
         float loc_ymax = loc_data[4*p*_num_loc_classes + 3];
 
+        // -22.6274 -11.3137 22.6274 11.3137
+        // std::cout << prior_xmin << " ";
+        // std::cout << prior_ymin << " ";
+        // std::cout << prior_xmax << " ";
+        // std::cout << prior_ymax << std::endl;
+
+        // -0.0310556 0.0153144 -0.350776 -0.403313
+        // std::cout << loc_xmin << " ";
+        // std::cout << loc_ymin << " ";
+        // std::cout << loc_xmax << " ";
+        // std::cout << loc_ymax << std::endl;
+
         if (!_normalized) {
             prior_xmin /= _image_width;
             prior_ymin /= _image_height;
@@ -520,6 +532,10 @@ void DetectionOutputImpl::decodeBBoxes(const float *prior_data,
                 decode_bbox_center_y = loc_ymin * prior_height + prior_center_y;
                 decode_bbox_width  = std::exp(loc_xmax) * prior_width;
                 decode_bbox_height = std::exp(loc_ymax) * prior_height;
+                // std::cout << decode_bbox_center_x << " ";
+                // std::cout << decode_bbox_center_y << " ";
+                // std::cout << decode_bbox_width << " ";
+                // std::cout << decode_bbox_height << std::endl;
             } else {
                 // variance is encoded in bbox, we need to scale the offset accordingly.
                 decode_bbox_center_x = variance_data[p*4 + 0] * loc_xmin * prior_width + prior_center_x;
@@ -546,8 +562,15 @@ void DetectionOutputImpl::decodeBBoxes(const float *prior_data,
         decoded_bboxes[p*4 + 2] = new_xmax;
         decoded_bboxes[p*4 + 3] = new_ymax;
 
+        // std::cout << new_xmin << " ";
+        // std::cout << new_ymin << " ";
+        // std::cout << new_xmax << " ";
+        // std::cout << new_ymax << std::endl;
+
+
         decoded_bbox_sizes[p] = (new_xmax - new_xmin) * (new_ymax - new_ymin);
     });
+    // }
 }
 
 void DetectionOutputImpl::nms_cf(const float* conf_data,

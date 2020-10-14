@@ -20,7 +20,6 @@ def forward_hook(self, inputs, output):
     # Find all inputs
     for idx, inp in enumerate(inputs):
         src_id = inp.node_name
-        print(src_id, self)
         assert(src_id is not None)
 
         edge_attrs = {
@@ -93,28 +92,27 @@ class OpenVINOTensor(object):
         self._value += a._value
         class Add(nn.Module):
             pass
-        forward_hook(Add(), (self, a), self)
-        return self
+
+        # NOTE: need to recreate OpenVINOTensor to run forward_hook
+        output = OpenVINOTensor(self._value)
+        output.graph = self.graph
+        return forward_hook(Add(), (self, a), output)
 
     def __add__(self, a):
-        res = OpenVINOTensor(self._value + a._value)
-        res.graph = self.graph
+        res = self._value + a._value
         class Add(nn.Module):
             pass
-        forward_hook(Add(), (self, a), res)
-        return res
+        return forward_hook(Add(), (self, a), res)
 
     def view(self, *shape):
-        res = OpenVINOTensor(self._value.view(shape))
-        res.graph = self.graph
+        res = self._value.view(shape)
 
         class Reshape(nn.Module):
             def __init__(self, shape):
                 super().__init__()
                 self.shape = shape
 
-        forward_hook(Reshape(shape), (self,), res)
-        return res
+        return forward_hook(Reshape(shape), (self,), res)
 
     def reshape(self, *shape):
         res = OpenVINOTensor(self._value.reshape(shape))
@@ -139,6 +137,15 @@ class OpenVINOTensor(object):
 
         forward_hook(Transpose(order), (self,), res)
         return res
+
+    def sigmoid(self):
+        res = self._value.sigmoid()
+
+        class Sigmoid(nn.Module):
+            def __init__(self):
+                super().__init__()
+
+        return forward_hook(Sigmoid(), (self,), res)
 
     def __getitem__(self, idx):
         assert(idx == 0)
@@ -172,13 +179,9 @@ def register_functional_hook(func):
         output.graph = input.graph
         return output
 
-# register_functional_hook(torch.conv2d)
-register_functional_hook(F.batch_norm)
-# register_functional_hook(F.relu)
-# register_functional_hook(F.max_pool2d)
-register_functional_hook(F.adaptive_avg_pool2d)
-register_functional_hook(F.linear)
-register_functional_hook(F.dropout)
+# register_functional_hook(F.adaptive_avg_pool2d)
+# register_functional_hook(F.linear)
+# register_functional_hook(F.dropout)
 
 
 @implements(F.max_pool2d)
@@ -194,11 +197,8 @@ def function_hook(input, *args, **kwargs):
             self.return_indices = return_indices
             self.ceil_mode = ceil_mode
 
-    output = OpenVINOTensor(F.max_pool2d(input.tensor(), *args, **kwargs))
-    output.graph = input.graph
-
-    forward_hook(MaxPool2d(*args, **kwargs), (input,), output)
-    return output
+    output = F.max_pool2d(input.tensor(), *args, **kwargs)
+    return forward_hook(MaxPool2d(*args, **kwargs), (input,), output)
 
 
 @implements(torch.relu_)
@@ -208,11 +208,8 @@ def function_hook(input, *args, **kwargs):
         def __init__(self):
             super().__init__()
 
-    output = OpenVINOTensor(torch.relu_(input.tensor(), *args, **kwargs))
-    output.graph = input.graph
-
-    forward_hook(ReLU(*args, **kwargs), (input,), output)
-    return output
+    output = torch.relu_(input.tensor(), *args, **kwargs)
+    return forward_hook(ReLU(*args, **kwargs), (input,), output)
 
 
 @implements(F.relu)
@@ -222,11 +219,28 @@ def function_hook(input, *args, **kwargs):
         def __init__(self, inplace):
             super().__init__()
 
-    output = OpenVINOTensor(F.relu(input.tensor(), *args, **kwargs))
-    output.graph = input.graph
+    output = F.relu(input.tensor(), *args, **kwargs)
+    return forward_hook(ReLU(*args, **kwargs), (input,), output)
 
-    forward_hook(ReLU(*args, **kwargs), (input,), output)
-    return output
+
+@implements(F.batch_norm)
+def function_hook(input, *args, **kwargs):
+
+    class BatchNorm2d(nn.BatchNorm2d):
+        def __init__(self, running_mean, running_var, weight, bias, training, momentum, eps):
+            assert(not training)
+            super().__init__(num_features=weight.shape[0],
+                             momentum=momentum,
+                             eps=eps)
+            self.load_state_dict({
+                'running_mean': running_mean,
+                'running_var': running_var,
+                'weight': weight,
+                'bias': bias,
+            })
+
+    output = F.batch_norm(input.tensor(), *args, **kwargs)
+    return forward_hook(BatchNorm2d(*args, **kwargs), (input,), output)
 
 
 @implements(torch.conv2d)
@@ -247,10 +261,8 @@ def function_hook(input, weight, bias, *args, **kwargs):
                 params['bias'] = bias
             self.load_state_dict(params)
 
-    output = OpenVINOTensor(torch.conv2d(input.tensor(), weight, bias, *args, **kwargs))
-    output.graph = input.graph
-    forward_hook(Conv2d(weight, bias, *args, **kwargs), (input,), output)
-    return output
+    output = torch.conv2d(input.tensor(), weight, bias, *args, **kwargs)
+    return forward_hook(Conv2d(weight, bias, *args, **kwargs), (input,), output)
 
 
 @implements(torch.flatten)
@@ -261,11 +273,8 @@ def function_hook(input, *args, **kwargs):
             super().__init__()
             self.axis = axis
 
-    output = OpenVINOTensor(torch.flatten(input.tensor(), *args, **kwargs))
-    output.graph = input.graph
-
-    forward_hook(Flatten(*args, **kwargs), (input,), output)
-    return output
+    output = torch.flatten(input.tensor(), *args, **kwargs)
+    return forward_hook(Flatten(*args, **kwargs), (input,), output)
 
 
 @implements(F.interpolate)
@@ -280,11 +289,8 @@ def function_hook(input, *args, **kwargs):
             self.align_corners = align_corners
             self.recompute_scale_factor = recompute_scale_factor
 
-    output = OpenVINOTensor(F.interpolate(input.tensor(), *args, **kwargs))
-    output.graph = input.graph
-
-    forward_hook(Upsample(*args, **kwargs), (input,), output)
-    return output
+    output = F.interpolate(input.tensor(), *args, **kwargs)
+    return forward_hook(Upsample(*args, **kwargs), (input,), output)
 
 
 # Workaround for a bug https://github.com/pytorch/pytorch/issues/34294

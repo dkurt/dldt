@@ -40,8 +40,8 @@ def detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(func, anchors, p
     output = func(anchors, pred_logits_t, pred_anchor_deltas_t, image_sizes)
 
     # Concatenate the inputs (should be tracked)
-    logist = torch.cat(pred_logits, dim=1)
-    deltas = torch.cat(pred_anchor_deltas, dim=1)
+    logist = torch.cat(pred_logits, dim=1).view(1, -1).sigmoid()
+    deltas = torch.cat(pred_anchor_deltas, dim=1).view(1, -1)
     assert(isinstance(logist, OpenVINOTensor))
     assert(isinstance(deltas, OpenVINOTensor))
 
@@ -62,7 +62,7 @@ def detectron2_modeling_meta_arch_retinanet_RetinaNet_inference(func, anchors, p
         out.graph = pred_logits[0].graph
 
     # Concatenate anchors
-    anchors = torch.cat([a.tensor for a in anchors])
+    anchors = torch.cat([a.tensor for a in anchors]).view(1, 1, -1)
 
     forward_hook(DetectionOutput(anchors), (deltas, logist), outputs[1])
     return output
@@ -87,7 +87,16 @@ class PyTorchLoader(Loader):
         update_extractors_with_extensions(pytorch_op_extractors)
 
         # Create a dummy input
-        inp = OpenVINOTensor(torch.randn(list(argv.placeholder_shapes)))
+        import cv2 as cv
+        import numpy as np
+        img = cv.imread('/home/dkurt/Pictures/dog416.png')
+        inp = cv.resize(img, (320, 320)).astype(np.float32).transpose(2, 0, 1)
+        inp[0] -= 103.5300
+        inp[1] -= 116.2800
+        inp[2] -= 123.6750
+        inp = inp.reshape(1, 3, 320, 320)
+        inp = OpenVINOTensor(torch.tensor(inp))
+        # inp = OpenVINOTensor(torch.randn(list(argv.placeholder_shapes)))
         inp.graph = graph
         inp.node_name = 'input'
 
